@@ -16,7 +16,6 @@ function validProfile(overrides: Record<string, unknown> = {}) {
   };
 }
 
-/** Runs Mongoose validation and returns the errors by field (empty if valid) */
 async function errorsOf(data: Record<string, unknown>) {
   try {
     await new TechnicianProfileModel(data).validate();
@@ -60,7 +59,7 @@ describe('TechnicianProfileModel', () => {
   it('checks the map point is [longitude, latitude]', async () => {
     expect((await errorsOf(validProfile())).location).toBeUndefined();
 
-    // Latitude and longitude swapped by mistake: 90.36 is not a valid latitude
+    // lat and lng swapped by mistake
     const swapped = await errorsOf(
       validProfile({ location: { type: 'Point', coordinates: [23.8223, 90.3654] } }),
     );

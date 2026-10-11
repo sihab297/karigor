@@ -9,7 +9,6 @@ export interface AppOptions {
   clientUrl: string;
 }
 
-/** Builds the Express app. Kept separate from server.ts so tests can use it without a database. */
 export function createApp({ clientUrl }: AppOptions) {
   const app = express();
 

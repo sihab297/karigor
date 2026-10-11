@@ -1,17 +1,12 @@
 import type { Catalog } from './catalog';
 
 export interface AnalyzeInput {
-  /** What the customer wrote, in Bangla, English or Banglish. */
   text: string;
-  /** Set when the customer used the quick path and picked a service first. */
+  // quick path only
   chosenServiceId?: string;
   images?: { mimeType: string; base64: string }[];
 }
 
-/**
- * Removes phone numbers and email addresses before the text is sent to the AI.
- * Customers sometimes type these into the problem box by mistake.
- */
 export function redactPersonalInfo(text: string): string {
   return text
     .replace(/(?:\+?88)?01[3-9]\d{2}[\s-]?\d{6}/g, '[phone removed]')

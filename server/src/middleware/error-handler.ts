@@ -2,7 +2,6 @@ import type { ErrorRequestHandler } from 'express';
 import { ZodError } from 'zod';
 import { AppError } from '../utils/app-error';
 
-/** Sends every error back in the same shape: { error: { code, message, details? } } */
 export const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
   if (err instanceof AppError) {
     res.status(err.statusCode).json({

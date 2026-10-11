@@ -7,7 +7,7 @@ export type ApprovalStatus = (typeof APPROVAL_STATUSES)[number];
 const TIME_REGEX = /^([01]\d|2[0-3]):[0-5]\d$/;
 const TIME_MESSAGE = 'Use 24-hour time like 09:00';
 
-/** A map point in GeoJSON form. MongoDB order is [longitude, latitude]. */
+// MongoDB wants [longitude, latitude], not the other way round
 const pointSchema = new Schema(
   {
     type: { type: String, enum: ['Point'], default: 'Point', required: true },
@@ -33,11 +33,6 @@ const workingHoursSchema = new Schema(
   { _id: false, id: false },
 );
 
-/**
- * Extra details for technicians. Created the first time a technician saves their profile.
- * Which services and skills are allowed is checked in the service layer against the catalog,
- * because the admin can change the catalog.
- */
 const technicianProfileSchema = new Schema(
   {
     userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
@@ -46,7 +41,7 @@ const technicianProfileSchema = new Schema(
     areaName: { type: String, required: [true, 'Area is required'], trim: true },
     location: { type: pointSchema, required: [true, 'Location is required'] },
     serviceRadiusKm: { type: Number, default: 10, min: 1, max: 30 },
-    /** 0 = Sunday … 6 = Saturday */
+    // 0 = Sunday, 6 = Saturday
     workingDays: { type: [Number] },
     workingHours: { type: workingHoursSchema, required: [true, 'Working hours are required'] },
     experienceYears: {
@@ -55,16 +50,14 @@ const technicianProfileSchema = new Schema(
       min: [0, 'Experience cannot be negative'],
       max: [60, 'Experience is too high'],
     },
-    /** The technician can switch this off when busy or on leave */
     acceptingJobs: { type: Boolean, default: true },
-    /** Cloudinary id of the private NID photo. Hidden from JSON; the admin gets a signed link. */
     nidPhotoPublicId: { type: String },
     profilePhotoUrl: { type: String },
     approvalStatus: { type: String, enum: APPROVAL_STATUSES, default: 'pending' },
     rejectionReason: { type: String, trim: true, maxlength: 300 },
     ratingAvg: { type: Number, default: 0, min: 0, max: 5 },
     ratingCount: { type: Number, default: 0, min: 0 },
-    /** Completed jobs per service, e.g. { electrician: 18 }. Used by Smart Matching. */
+    // e.g. { electrician: 18 }
     jobsDone: { type: Map, of: Number, default: () => new Map() },
   },
   { timestamps: true, toJSON: toJSONOptions(['nidPhotoPublicId']) },
@@ -85,13 +78,12 @@ technicianProfileSchema
   )
   .validate((days: number[]) => new Set(days).size === days.length, 'Working days must not repeat');
 technicianProfileSchema.path('workingHours').validate(
-  // Only compare when both times are well formed, so the format message is shown first
+  // skip if the format is wrong, so that error shows first
   (hours: { start: string; end: string }) =>
     !TIME_REGEX.test(hours.start) || !TIME_REGEX.test(hours.end) || hours.start < hours.end,
   'Start time must be before end time',
 );
 
-/** Lets the admin page know if an NID photo was uploaded, without sharing the photo id */
 technicianProfileSchema.virtual('hasNidPhoto').get(function (this: {
   nidPhotoPublicId?: string | null;
 }) {
