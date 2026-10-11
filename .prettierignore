@@ -1,0 +1,6 @@
+dist
+coverage
+node_modules
+package-lock.json
+# Kept in a compact one-line-per-item style so prices are easy to review
+server/src/data

@@ -1,0 +1,155 @@
+[
+  {
+    "id": "plumber",
+    "name": "Plumber",
+    "nameBn": "প্লাম্বার",
+    "skills": [
+      { "id": "tap-repair", "name": "Tap and faucet repair" },
+      { "id": "pipe-leak", "name": "Water pipe leak repair" },
+      { "id": "flush-repair", "name": "Toilet flush and cistern repair" },
+      { "id": "drain-block", "name": "Blocked drain, sink or commode" },
+      { "id": "basin-fitting", "name": "Basin, sink and commode fitting" },
+      { "id": "water-pump", "name": "Water pump fitting" },
+      { "id": "geyser-fitting", "name": "Geyser (water heater) fitting" },
+      { "id": "shower-fitting", "name": "Shower and mixer fitting" }
+    ],
+    "priceItems": [
+      { "id": "plumber-tap", "skillId": "tap-repair", "name": "Tap repair or replacement", "minPrice": 200, "maxPrice": 400, "unit": "per tap" },
+      { "id": "plumber-pipe-leak", "skillId": "pipe-leak", "name": "Pipe leak repair", "minPrice": 300, "maxPrice": 800, "unit": "per leak" },
+      { "id": "plumber-flush", "skillId": "flush-repair", "name": "Flush (cistern) repair", "minPrice": 300, "maxPrice": 600, "unit": "per toilet" },
+      { "id": "plumber-drain", "skillId": "drain-block", "name": "Blocked drain or commode cleaning", "minPrice": 500, "maxPrice": 1200, "unit": "per job" },
+      { "id": "plumber-basin", "skillId": "basin-fitting", "name": "Basin, sink or commode fitting", "minPrice": 500, "maxPrice": 1000, "unit": "per piece" },
+      { "id": "plumber-pump", "skillId": "water-pump", "name": "Water pump fitting", "minPrice": 800, "maxPrice": 1500, "unit": "per pump" },
+      { "id": "plumber-geyser", "skillId": "geyser-fitting", "name": "Geyser fitting", "minPrice": 800, "maxPrice": 1500, "unit": "per geyser" },
+      { "id": "plumber-shower", "skillId": "shower-fitting", "name": "Shower or mixer fitting", "minPrice": 300, "maxPrice": 600, "unit": "per piece" },
+      { "id": "plumber-visit", "skillId": null, "name": "Visit and check (problem not clear)", "minPrice": 200, "maxPrice": 300, "unit": "per visit" }
+    ]
+  },
+  {
+    "id": "electrician",
+    "name": "Electrician",
+    "nameBn": "ইলেকট্রিশিয়ান",
+    "skills": [
+      { "id": "fan", "name": "Ceiling fan repair and fitting" },
+      { "id": "switch-socket", "name": "Switch and socket repair" },
+      { "id": "light-fitting", "name": "Light fitting" },
+      { "id": "wiring", "name": "Wiring and new electric points" },
+      { "id": "ips", "name": "IPS and UPS repair" },
+      { "id": "circuit-breaker", "name": "Main switch and circuit breaker" }
+    ],
+    "priceItems": [
+      { "id": "elec-fan-repair", "skillId": "fan", "name": "Ceiling fan repair", "minPrice": 300, "maxPrice": 500, "unit": "per fan" },
+      { "id": "elec-fan-install", "skillId": "fan", "name": "Ceiling fan installation", "minPrice": 300, "maxPrice": 500, "unit": "per fan" },
+      { "id": "elec-switch", "skillId": "switch-socket", "name": "Switch or socket replacement", "minPrice": 150, "maxPrice": 300, "unit": "per piece" },
+      { "id": "elec-light", "skillId": "light-fitting", "name": "Light fitting installation", "minPrice": 150, "maxPrice": 400, "unit": "per light" },
+      { "id": "elec-new-point", "skillId": "wiring", "name": "New wiring point", "minPrice": 400, "maxPrice": 800, "unit": "per point" },
+      { "id": "elec-room-wiring", "skillId": "wiring", "name": "Room rewiring", "minPrice": 3000, "maxPrice": 6000, "unit": "per room" },
+      { "id": "elec-ips", "skillId": "ips", "name": "IPS repair or installation", "minPrice": 500, "maxPrice": 1500, "unit": "per job" },
+      { "id": "elec-breaker", "skillId": "circuit-breaker", "name": "Circuit breaker or main switch replacement", "minPrice": 300, "maxPrice": 700, "unit": "per piece" },
+      { "id": "elec-visit", "skillId": null, "name": "Visit and check (problem not clear)", "minPrice": 200, "maxPrice": 300, "unit": "per visit" }
+    ]
+  },
+  {
+    "id": "painter",
+    "name": "Painter",
+    "nameBn": "রংমিস্ত্রি",
+    "skills": [
+      { "id": "interior-paint", "name": "Room and interior painting" },
+      { "id": "exterior-paint", "name": "Outside wall painting" },
+      { "id": "damp-treatment", "name": "Damp wall treatment" },
+      { "id": "touch-up", "name": "Small patch and touch-up" },
+      { "id": "grill-door-paint", "name": "Door, window and grill painting" }
+    ],
+    "priceItems": [
+      { "id": "paint-room", "skillId": "interior-paint", "name": "Room painting (labour only)", "minPrice": 3000, "maxPrice": 6000, "unit": "per room" },
+      { "id": "paint-exterior", "skillId": "exterior-paint", "name": "Outside wall painting (labour only)", "minPrice": 1000, "maxPrice": 2000, "unit": "per 100 sq ft" },
+      { "id": "paint-damp", "skillId": "damp-treatment", "name": "Damp wall treatment", "minPrice": 1500, "maxPrice": 4000, "unit": "per wall" },
+      { "id": "paint-touch-up", "skillId": "touch-up", "name": "Small patch or touch-up", "minPrice": 500, "maxPrice": 1500, "unit": "per job" },
+      { "id": "paint-grill", "skillId": "grill-door-paint", "name": "Door, window or grill painting", "minPrice": 300, "maxPrice": 800, "unit": "per piece" },
+      { "id": "paint-visit", "skillId": null, "name": "Visit and check (problem not clear)", "minPrice": 200, "maxPrice": 300, "unit": "per visit" }
+    ]
+  },
+  {
+    "id": "gas-fitter",
+    "name": "Gas Fitter",
+    "nameBn": "গ্যাস মিস্ত্রি",
+    "skills": [
+      { "id": "burner-repair", "name": "Gas stove and burner repair" },
+      { "id": "gas-leak-repair", "name": "Gas leak check and repair" },
+      { "id": "gas-line", "name": "Gas line shifting and extension" },
+      { "id": "cylinder-setup", "name": "LPG cylinder and regulator setup" },
+      { "id": "stove-install", "name": "Gas stove installation" }
+    ],
+    "priceItems": [
+      { "id": "gas-burner", "skillId": "burner-repair", "name": "Gas burner repair", "minPrice": 300, "maxPrice": 600, "unit": "per stove" },
+      { "id": "gas-leak", "skillId": "gas-leak-repair", "name": "Gas leak check and repair", "minPrice": 500, "maxPrice": 1200, "unit": "per job" },
+      { "id": "gas-line", "skillId": "gas-line", "name": "Gas line shifting or extension", "minPrice": 1000, "maxPrice": 2500, "unit": "per job" },
+      { "id": "gas-cylinder", "skillId": "cylinder-setup", "name": "LPG cylinder and regulator setup", "minPrice": 200, "maxPrice": 400, "unit": "per cylinder" },
+      { "id": "gas-stove-install", "skillId": "stove-install", "name": "Gas stove installation", "minPrice": 300, "maxPrice": 500, "unit": "per stove" },
+      { "id": "gas-visit", "skillId": null, "name": "Visit and check (problem not clear)", "minPrice": 200, "maxPrice": 300, "unit": "per visit" }
+    ]
+  },
+  {
+    "id": "ac-repair",
+    "name": "AC Repair",
+    "nameBn": "এসি মেরামত",
+    "skills": [
+      { "id": "ac-service", "name": "AC cleaning and servicing" },
+      { "id": "ac-gas", "name": "AC gas refill" },
+      { "id": "ac-install", "name": "AC installation and removal" },
+      { "id": "ac-water-leak", "name": "AC water leak and drain" },
+      { "id": "ac-not-cooling", "name": "AC not cooling or not starting" }
+    ],
+    "priceItems": [
+      { "id": "ac-servicing", "skillId": "ac-service", "name": "AC servicing (cleaning)", "minPrice": 800, "maxPrice": 1500, "unit": "per AC" },
+      { "id": "ac-gas-refill", "skillId": "ac-gas", "name": "AC gas refill", "minPrice": 2500, "maxPrice": 4500, "unit": "per AC" },
+      { "id": "ac-installation", "skillId": "ac-install", "name": "AC installation (pipe extra)", "minPrice": 2500, "maxPrice": 4000, "unit": "per AC" },
+      { "id": "ac-removal", "skillId": "ac-install", "name": "AC removal", "minPrice": 1000, "maxPrice": 1500, "unit": "per AC" },
+      { "id": "ac-leak-fix", "skillId": "ac-water-leak", "name": "AC water leak or drain fix", "minPrice": 500, "maxPrice": 1000, "unit": "per AC" },
+      { "id": "ac-repair-check", "skillId": "ac-not-cooling", "name": "Repair check (not cooling or not starting)", "minPrice": 500, "maxPrice": 1000, "unit": "per AC" }
+    ]
+  },
+  {
+    "id": "carpenter",
+    "name": "Carpenter",
+    "nameBn": "কাঠমিস্ত্রি",
+    "skills": [
+      { "id": "door-lock", "name": "Door lock fitting and repair" },
+      { "id": "door-repair", "name": "Door and hinge repair" },
+      { "id": "furniture-repair", "name": "Furniture repair" },
+      { "id": "furniture-assembly", "name": "Furniture assembly" },
+      { "id": "curtain-shelf", "name": "Curtain rod, shelf and rack fitting" },
+      { "id": "kitchen-cabinet", "name": "Kitchen cabinet repair" }
+    ],
+    "priceItems": [
+      { "id": "carp-lock", "skillId": "door-lock", "name": "Door lock fitting or replacement", "minPrice": 300, "maxPrice": 600, "unit": "per lock" },
+      { "id": "carp-door", "skillId": "door-repair", "name": "Door hinge or alignment repair", "minPrice": 300, "maxPrice": 700, "unit": "per door" },
+      { "id": "carp-furniture-repair", "skillId": "furniture-repair", "name": "Furniture repair (bed, table, chair)", "minPrice": 500, "maxPrice": 1500, "unit": "per piece" },
+      { "id": "carp-assembly", "skillId": "furniture-assembly", "name": "Furniture assembly", "minPrice": 500, "maxPrice": 1500, "unit": "per piece" },
+      { "id": "carp-curtain", "skillId": "curtain-shelf", "name": "Curtain rod fitting", "minPrice": 200, "maxPrice": 400, "unit": "per window" },
+      { "id": "carp-shelf", "skillId": "curtain-shelf", "name": "Shelf or rack fitting", "minPrice": 300, "maxPrice": 700, "unit": "per piece" },
+      { "id": "carp-cabinet", "skillId": "kitchen-cabinet", "name": "Kitchen cabinet repair", "minPrice": 500, "maxPrice": 1500, "unit": "per job" },
+      { "id": "carp-visit", "skillId": null, "name": "Visit and check (problem not clear)", "minPrice": 200, "maxPrice": 300, "unit": "per visit" }
+    ]
+  },
+  {
+    "id": "cleaner",
+    "name": "Cleaner",
+    "nameBn": "পরিচ্ছন্নতা কর্মী",
+    "skills": [
+      { "id": "home-deep-clean", "name": "Full home deep cleaning" },
+      { "id": "bathroom-clean", "name": "Bathroom deep cleaning" },
+      { "id": "kitchen-clean", "name": "Kitchen deep cleaning" },
+      { "id": "sofa-carpet-clean", "name": "Sofa and carpet cleaning" },
+      { "id": "water-tank-clean", "name": "Water tank cleaning" }
+    ],
+    "priceItems": [
+      { "id": "clean-home", "skillId": "home-deep-clean", "name": "Full home deep cleaning (2 to 3 bedroom flat)", "minPrice": 4000, "maxPrice": 8000, "unit": "per flat" },
+      { "id": "clean-bathroom", "skillId": "bathroom-clean", "name": "Bathroom deep cleaning", "minPrice": 800, "maxPrice": 1500, "unit": "per bathroom" },
+      { "id": "clean-kitchen", "skillId": "kitchen-clean", "name": "Kitchen deep cleaning", "minPrice": 1500, "maxPrice": 3000, "unit": "per kitchen" },
+      { "id": "clean-sofa", "skillId": "sofa-carpet-clean", "name": "Sofa cleaning", "minPrice": 300, "maxPrice": 500, "unit": "per seat" },
+      { "id": "clean-carpet", "skillId": "sofa-carpet-clean", "name": "Carpet cleaning", "minPrice": 800, "maxPrice": 2000, "unit": "per carpet" },
+      { "id": "clean-tank", "skillId": "water-tank-clean", "name": "Water tank cleaning", "minPrice": 1500, "maxPrice": 3000, "unit": "per tank" }
+    ]
+  }
+]

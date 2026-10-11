@@ -1,0 +1,45 @@
+{
+  "emergencyNumber": "999",
+  "emergencyTypes": [
+    {
+      "id": "gas-leak",
+      "name": "Gas smell or gas leak",
+      "tips": [
+        "Turn off the stove knobs and the main gas valve (or the cylinder regulator) if you can reach them safely.",
+        "Open all doors and windows to let fresh air in.",
+        "Do not turn any electric switch on or off, and do not use a lighter, match or anything with a flame.",
+        "Go outside before you make a phone call.",
+        "If the smell is strong, leave the home and call 999."
+      ]
+    },
+    {
+      "id": "electric-spark",
+      "name": "Sparks or burning smell from an electric point",
+      "tips": [
+        "Switch off the main switch or circuit breaker if you can reach it safely.",
+        "Do not touch the socket, wire or appliance.",
+        "Never pour water on sparks or an electric fire.",
+        "If you see smoke or fire, leave the home and call 999."
+      ]
+    },
+    {
+      "id": "water-electric",
+      "name": "Water near electric wiring, switches or sockets",
+      "tips": [
+        "Switch off the main power only if you can reach the main switch from a dry place.",
+        "Do not touch switches, sockets or appliances with wet hands or while standing in water.",
+        "Keep children and others away from the wet area."
+      ]
+    },
+    {
+      "id": "fire-smoke",
+      "name": "Fire or heavy smoke",
+      "tips": [
+        "Leave the home right away and help others leave.",
+        "Call 999.",
+        "Use the stairs, not the lift.",
+        "Do not go back inside to collect belongings."
+      ]
+    }
+  ]
+}
