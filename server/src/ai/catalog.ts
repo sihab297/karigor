@@ -8,7 +8,7 @@ export interface Skill {
 
 export interface PriceItem {
   id: string;
-  /** null for general items such as "Visit and check" */
+  // null for "Visit and check"
   skillId: string | null;
   name: string;
   minPrice: number;
@@ -30,17 +30,13 @@ export interface EmergencyType {
   tips: string[];
 }
 
-/** Everything the AI needs to know about what Karigor offers. */
 export interface Catalog {
   services: Service[];
   emergencyTypes: EmergencyType[];
   emergencyNumber: string;
 }
 
-/**
- * Catalog built from the JSON files in src/data.
- * Later the same data will be stored in MongoDB so the admin can edit it.
- */
+// from the json files for now, will come from MongoDB once the admin can edit it
 export const defaultCatalog: Catalog = {
   services: servicesData,
   emergencyTypes: safetyData.emergencyTypes,

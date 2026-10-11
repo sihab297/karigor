@@ -5,21 +5,19 @@ import { buildSystemInstruction, buildUserPrompt, type AnalyzeInput } from './pr
 import { buildAiOutputSchema, buildResponseJsonSchema, type AiOutput } from './schema';
 
 const AI_TIMEOUT_MS = 25_000;
-/** Busy, rate-limited or timed out: worth trying the next model */
 const RETRYABLE_STATUS = new Set([429, 500, 503, 504]);
 
 export interface AnalyzeOutcome {
   result: AnalysisResult;
   raw: AiOutput;
   latencyMs: number;
-  /** The model that actually answered (the backup model if the main one was busy) */
   model: string;
 }
 
 export function createGeminiClient(apiKey: string): GoogleGenAI {
   return new GoogleGenAI({
     apiKey,
-    // We switch to the backup model instead of waiting through many retries
+    // no retries here, we move on to the next model instead
     httpOptions: { timeout: AI_TIMEOUT_MS, retryOptions: { attempts: 1 } },
   });
 }
@@ -28,11 +26,6 @@ function isRetryable(error: unknown): boolean {
   return error instanceof ApiError && RETRYABLE_STATUS.has(error.status);
 }
 
-/**
- * Sends one problem to Gemini and returns the checked result.
- * Tries the models in order: if the main model is busy, the backup model answers instead.
- * One request per problem keeps us inside the free usage limit.
- */
 export async function analyzeProblem(
   client: GoogleGenAI,
   models: string[],

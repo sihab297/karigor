@@ -13,7 +13,6 @@ function validUser(overrides: Record<string, unknown> = {}) {
   };
 }
 
-/** Runs Mongoose validation and returns the errors by field (empty if valid) */
 async function errorsOf(data: Record<string, unknown>) {
   try {
     await new UserModel(data).validate();

@@ -8,7 +8,7 @@ async function main() {
   await connectDb(env.MONGODB_URI);
 
   const app = createApp({ clientUrl: env.CLIENT_URL });
-  // A plain HTTP server, so Socket.IO can be attached to it later for chat
+  // socket.io will use this server for chat later
   const server = createServer(app);
 
   server.listen(env.PORT, () => {

@@ -10,10 +10,7 @@ export const confidenceSchema = z.enum(['high', 'medium', 'low']);
 export type Urgency = z.infer<typeof urgencySchema>;
 export type Confidence = z.infer<typeof confidenceSchema>;
 
-/**
- * The exact JSON the AI must return. The same schema is sent to Gemini
- * (so it answers in this shape) and used to check the answer afterwards.
- */
+// sent to Gemini so it answers in this shape, then used to check the answer
 export function buildAiOutputSchema(catalog: Catalog) {
   const serviceIds = catalog.services.map((s) => s.id);
   const emergencyIds = catalog.emergencyTypes.map((e) => e.id);
@@ -44,7 +41,6 @@ export function buildAiOutputSchema(catalog: Catalog) {
 
 export type AiOutput = z.infer<ReturnType<typeof buildAiOutputSchema>>;
 
-/** JSON Schema version of the output schema, in the form Gemini accepts. */
 export function buildResponseJsonSchema(catalog: Catalog): Record<string, unknown> {
   const jsonSchema: Record<string, unknown> = z.toJSONSchema(buildAiOutputSchema(catalog));
   delete jsonSchema.$schema;

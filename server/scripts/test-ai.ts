@@ -1,11 +1,5 @@
-/**
- * Tries the AI problem detector on real-looking customer problems and checks the answers.
- *
- *   npm run test:ai -w server          run all cases
- *   npm run test:ai -w server -- 4 15  run only cases 4 and 15
- *
- * Needs GEMINI_API_KEY in server/.env. Uses the free tier, so it waits between requests.
- */
+// Runs the AI on the cases in ai-test-cases.json (needs GEMINI_API_KEY in .env)
+// npm run test:ai -w server, or only some cases: npm run test:ai -w server -- 4 15
 import { readFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import path from 'node:path';
@@ -17,7 +11,7 @@ interface TestCase {
   id: number;
   text: string;
   chosenServiceId?: string;
-  /** File names inside scripts/test-images */
+  // file names in scripts/test-images
   images?: string[];
   expect: {
     serviceId: string;

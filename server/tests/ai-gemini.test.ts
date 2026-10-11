@@ -14,7 +14,7 @@ const goodAnswer = JSON.stringify({
   followUpQuestion: '',
 });
 
-/** A pretend Gemini client, so these tests never call Google */
+// fake client so tests never call Google
 function fakeClient(generateContent: ReturnType<typeof vi.fn>) {
   return { models: { generateContent } } as unknown as GoogleGenAI;
 }
