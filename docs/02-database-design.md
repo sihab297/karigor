@@ -37,38 +37,48 @@ MongoDB, and after that the admin edits them from the dashboard.
 
 ### users
 
-| Field          | Type   | Notes                                       |
-| -------------- | ------ | ------------------------------------------- |
-| `name`         | string | required                                    |
-| `phone`        | string | required, unique, Bangladeshi mobile number |
-| `email`        | string | unique, optional                            |
-| `passwordHash` | string | bcrypt hash, never the real password        |
-| `role`         | enum   | `customer`, `technician`, `admin`           |
-| `status`       | enum   | `active`, `blocked`                         |
-| `createdAt`    | date   | automatic (`updatedAt` too)                 |
+| Field          | Type   | Notes                                                                       |
+| -------------- | ------ | --------------------------------------------------------------------------- |
+| `name`         | string | required, 2–80 characters                                                   |
+| `phone`        | string | required, unique, Bangladeshi mobile number, always stored as `01XXXXXXXXX` |
+| `email`        | string | optional; unique only among users who have one; stored in lowercase         |
+| `passwordHash` | string | bcrypt hash, never the real password; not loaded unless asked for           |
+| `role`         | enum   | `customer`, `technician`, `admin`                                           |
+| `status`       | enum   | `active` (default), `blocked`                                               |
+| `createdAt`    | date   | automatic (`updatedAt` too)                                                 |
+
+Indexes: `phone` (unique), `email` (unique, only when present).
+
+Phone numbers typed as `+8801712-345678`, `017 1234 5678` or in Bangla digits (`০১৭১২৩৪৫৬৭৮`) are
+all saved as `01712345678`, so the same person cannot sign up twice with different spellings.
 
 ### technicianProfiles
 
-| Field                      | Type             | Notes                                                       |
-| -------------------------- | ---------------- | ----------------------------------------------------------- |
-| `userId`                   | ObjectId → users | unique, one profile per technician                          |
-| `serviceIds`               | string[]         | e.g. `["electrician"]`                                      |
-| `skillIds`                 | string[]         | e.g. `["fan", "ips"]`, chosen from the service's skill list |
-| `areaName`                 | string           | e.g. "Mirpur"                                               |
-| `location`                 | GeoJSON Point    | `{ type: "Point", coordinates: [lng, lat] }` (lng first!)   |
-| `serviceRadiusKm`          | number           | default 10                                                  |
-| `workingDays`              | number[]         | 0 = Sunday … 6 = Saturday                                   |
-| `workingHours`             | object           | `{ start: "09:00", end: "20:00" }`                          |
-| `experienceYears`          | number           |                                                             |
-| `acceptingJobs`            | boolean          | technician can switch off when busy or on leave             |
-| `nidPhotoUrl`              | string           | private Cloudinary image, only the admin can open it        |
-| `profilePhotoUrl`          | string           | optional                                                    |
-| `approvalStatus`           | enum             | `pending`, `approved`, `rejected`                           |
-| `rejectionReason`          | string           | when rejected                                               |
-| `ratingAvg`, `ratingCount` | number           | updated when a review is added                              |
-| `jobsDone`                 | object           | completed jobs per service, e.g. `{ "electrician": 18 }`    |
+| Field                      | Type             | Notes                                                                                                                                               |
+| -------------------------- | ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `userId`                   | ObjectId → users | unique, one profile per technician                                                                                                                  |
+| `serviceIds`               | string[]         | e.g. `["electrician"]`                                                                                                                              |
+| `skillIds`                 | string[]         | e.g. `["fan", "ips"]`, chosen from the service's skill list                                                                                         |
+| `areaName`                 | string           | e.g. "Mirpur"                                                                                                                                       |
+| `location`                 | GeoJSON Point    | `{ type: "Point", coordinates: [lng, lat] }` (lng first!)                                                                                           |
+| `serviceRadiusKm`          | number           | default 10                                                                                                                                          |
+| `workingDays`              | number[]         | 0 = Sunday … 6 = Saturday, at least one, no repeats                                                                                                 |
+| `workingHours`             | object           | `{ start: "09:00", end: "20:00" }`, start before end                                                                                                |
+| `experienceYears`          | number           | 0–60                                                                                                                                                |
+| `acceptingJobs`            | boolean          | technician can switch off when busy or on leave                                                                                                     |
+| `nidPhotoPublicId`         | string           | Cloudinary id of the private NID photo; never sent in API responses (they show `hasNidPhoto: true/false`); the admin gets a short-lived signed link |
+| `profilePhotoUrl`          | string           | optional                                                                                                                                            |
+| `approvalStatus`           | enum             | `pending`, `approved`, `rejected`                                                                                                                   |
+| `rejectionReason`          | string           | when rejected                                                                                                                                       |
+| `ratingAvg`, `ratingCount` | number           | updated when a review is added                                                                                                                      |
+| `jobsDone`                 | object           | completed jobs per service, e.g. `{ "electrician": 18 }`                                                                                            |
 
-Indexes: `location` (**2dsphere**, for "near me" search), `{ approvalStatus, serviceIds }`.
+Indexes: `userId` (unique), `location` (**2dsphere**, for "near me" search),
+`{ approvalStatus, serviceIds }`.
+
+A profile is created the first time a technician saves it, so all main fields are required.
+Whether the chosen services and skills exist is checked against the catalog in the service layer,
+because the admin can change the catalog.
 
 ### services
 
@@ -166,3 +176,5 @@ Index: `{ bookingId, createdAt }`.
   them. Mixing these up is a common bug.
 - **Privacy:** the customer's address text is only shown to the technician after they accept the
   booking. NID photos are only visible to the admin.
+- **API format:** every record is sent with `id` instead of MongoDB's `_id`, without the internal
+  `__v` field, and without private fields (`passwordHash`, `nidPhotoPublicId`).
