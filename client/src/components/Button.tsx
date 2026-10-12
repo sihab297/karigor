@@ -2,13 +2,14 @@ import { LoaderCircle } from 'lucide-react';
 import type { ButtonHTMLAttributes } from 'react';
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary';
+  variant?: 'primary' | 'secondary' | 'danger';
   loading?: boolean;
 }
 
 const styles = {
   primary: 'bg-turmeric text-tea hover:bg-turmeric-dark',
   secondary: 'border-[1.5px] border-tea bg-white text-tea hover:bg-paper',
+  danger: 'bg-alert text-white hover:bg-alert-ink',
 };
 
 export function Button({

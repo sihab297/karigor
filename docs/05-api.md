@@ -147,16 +147,16 @@ field.
 
 ### Admin
 
-| Method              | Path                                                          | Who | What it does                                                                                                       |
-| ------------------- | ------------------------------------------------------------- | --- | ------------------------------------------------------------------------------------------------------------------ |
-| GET                 | `/admin/stats`                                                | A   | Numbers for the dashboard                                                                                          |
-| GET                 | `/admin/technicians?status=pending`                           | A   | Technicians waiting for approval                                                                                   |
-| GET                 | `/admin/technicians/:id/nid`                                  | A   | Short-lived link to the NID photo (done): `{ url, expiresAt }`, valid 5 minutes; `:id` is the technician's user id |
-| PATCH               | `/admin/technicians/:id/approval`                             | A   | Approve or reject (with reason)                                                                                    |
-| GET                 | `/admin/users`                                                | A   | All users                                                                                                          |
-| PATCH               | `/admin/users/:id/status`                                     | A   | Block or unblock                                                                                                   |
-| GET                 | `/admin/bookings`                                             | A   | All bookings                                                                                                       |
-| POST, PATCH, DELETE | `/admin/services`, `/admin/price-items`, `/admin/safety-tips` | A   | Manage the catalog                                                                                                 |
+| Method              | Path                                                          | Who | What it does                                                                                                                                                                                                      |
+| ------------------- | ------------------------------------------------------------- | --- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| GET                 | `/admin/stats`                                                | A   | Numbers for the dashboard                                                                                                                                                                                         |
+| GET                 | `/admin/technicians?status=pending`                           | A   | Technicians in one tab (done): `{ technicians, counts }`; each has the profile plus `user` (name, phone, email); `status` is `pending` (oldest first), `approved` or `rejected` (newest decision first)           |
+| GET                 | `/admin/technicians/:id/nid`                                  | A   | Short-lived link to the NID photo (done): `{ url, expiresAt }`, valid 5 minutes; `:id` is the technician's user id                                                                                                |
+| PATCH               | `/admin/technicians/:id/approval`                             | A   | Approve or reject (done): `{ "status": "approved" }` or `{ "status": "rejected", "reason": "..." }` (5 to 300 characters). Approving needs an NID photo (409 `NID_REQUIRED`). Saves `reviewedBy` and `reviewedAt` |
+| GET                 | `/admin/users`                                                | A   | All users                                                                                                                                                                                                         |
+| PATCH               | `/admin/users/:id/status`                                     | A   | Block or unblock                                                                                                                                                                                                  |
+| GET                 | `/admin/bookings`                                             | A   | All bookings                                                                                                                                                                                                      |
+| POST, PATCH, DELETE | `/admin/services`, `/admin/price-items`, `/admin/safety-tips` | A   | Manage the catalog                                                                                                                                                                                                |
 
 ## Live events (Socket.IO)
 
