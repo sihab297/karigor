@@ -1,35 +1,21 @@
-import { render, screen } from '@testing-library/react';
-import { MemoryRouter } from 'react-router';
-import { afterEach, describe, expect, it, vi } from 'vitest';
-import App from './App';
+import { screen } from '@testing-library/react';
+import { describe, expect, it } from 'vitest';
+import { renderAt } from './test/helpers';
 
 describe('App', () => {
-  afterEach(() => {
-    vi.unstubAllGlobals();
-  });
+  it('shows the home page with sign up and log in', () => {
+    renderAt('/');
 
-  it('shows the home page and checks the API', async () => {
-    vi.stubGlobal(
-      'fetch',
-      vi.fn().mockResolvedValue({ ok: true, json: async () => ({ data: { status: 'ok' } }) }),
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(/find the right karigor/i);
+    expect(screen.getByRole('link', { name: 'Create an account' })).toHaveAttribute(
+      'href',
+      '/register',
     );
-
-    render(
-      <MemoryRouter>
-        <App />
-      </MemoryRouter>,
-    );
-
-    expect(screen.getByRole('heading', { name: 'Karigor' })).toBeTruthy();
-    expect(await screen.findByText('API connected')).toBeTruthy();
+    expect(screen.getByRole('link', { name: 'Log in' })).toHaveAttribute('href', '/login');
   });
 
   it('shows a not found page for unknown links', () => {
-    render(
-      <MemoryRouter initialEntries={['/nothing-here']}>
-        <App />
-      </MemoryRouter>,
-    );
+    renderAt('/nothing-here');
 
     expect(screen.getByRole('heading', { name: 'Page not found' })).toBeTruthy();
   });
