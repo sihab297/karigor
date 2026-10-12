@@ -2,6 +2,7 @@ import areas from '../data/areas.json' with { type: 'json' };
 import safetyData from '../data/safety-tips.json' with { type: 'json' };
 import services from '../data/services.json' with { type: 'json' };
 import type { ApprovalStatus } from '../models/technician-profile.model';
+import { roundCoordinate } from '../utils/geo';
 
 export interface TestTechnician {
   name: string;
@@ -253,8 +254,8 @@ export function technicianProfileDoc(technician: TestTechnician, index: number) 
   if (!area) throw new Error(`Unknown area: ${technician.area}`);
 
   // spread people a few hundred metres around the area centre
-  const lat = area.lat + ((index % 3) - 1) * 0.004;
-  const lng = area.lng + (((index + 1) % 3) - 1) * 0.004;
+  const lat = roundCoordinate(area.lat + ((index % 3) - 1) * 0.004);
+  const lng = roundCoordinate(area.lng + (((index + 1) % 3) - 1) * 0.004);
 
   return {
     serviceIds: technician.serviceIds,
