@@ -86,14 +86,42 @@ Keep the token and send it as `Authorization: Bearer <token>`. It lasts 7 days.
 
 ### Technicians
 
-| Method | Path                           | Who | What it does                                 |
-| ------ | ------------------------------ | --- | -------------------------------------------- |
-| GET    | `/technicians/:id`             | Any | Public profile: services, skills, rating     |
-| GET    | `/technicians/:id/reviews`     | Any | Reviews for a technician                     |
-| GET    | `/technicians/me/profile`      | T   | My own profile and approval status           |
-| PUT    | `/technicians/me/profile`      | T   | Save services, skills, area, location, hours |
-| POST   | `/technicians/me/nid`          | T   | Upload NID photo (private)                   |
-| PATCH  | `/technicians/me/availability` | T   | Turn "accepting jobs" on or off              |
+| Method | Path                           | Who | What it does                                        |
+| ------ | ------------------------------ | --- | --------------------------------------------------- |
+| GET    | `/technicians/:id`             | Any | Public profile: services, skills, rating            |
+| GET    | `/technicians/:id/reviews`     | Any | Reviews for a technician                            |
+| GET    | `/technicians/me/profile`      | T   | My own profile and approval status (done)           |
+| PUT    | `/technicians/me/profile`      | T   | Save services, skills, area, location, hours (done) |
+| POST   | `/technicians/me/nid`          | T   | Upload NID photo (private)                          |
+| PATCH  | `/technicians/me/availability` | T   | Turn "accepting jobs" on or off (done)              |
+
+**Get my profile:** `GET /technicians/me/profile` answers `{ "data": { "profile": null } }` until
+the technician saves it for the first time.
+
+**Save my profile:** `PUT /technicians/me/profile`
+
+```json
+{
+  "serviceIds": ["electrician"],
+  "skillIds": ["fan", "ips"],
+  "areaName": "Mirpur",
+  "location": { "lat": 23.8223, "lng": 90.3654 },
+  "serviceRadiusKm": 10,
+  "workingDays": [6, 0, 1, 2, 3, 4],
+  "workingHours": { "start": "09:00", "end": "20:00" },
+  "experienceYears": 5
+}
+```
+
+- 1 to 3 services, checked against the catalog in the database (switched-off services are refused).
+- Skills must belong to the chosen services, with at least one skill for each service.
+- `location` must be inside Dhaka. It is saved as GeoJSON `[lng, lat]`, rounded to 6 decimals.
+- `serviceRadiusKm` is optional (default 10). Days are 0 = Sunday to 6 = Saturday.
+- The first save creates the profile with `approvalStatus: "pending"`. If a rejected technician
+  saves again, the profile goes back to `pending` so the admin can check it again.
+
+**Accepting jobs:** `PATCH /technicians/me/availability` with `{ "acceptingJobs": false }`.
+Answers 404 `PROFILE_NOT_FOUND` if the profile has not been saved yet.
 
 ### Bookings, chat and reviews
 
