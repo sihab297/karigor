@@ -9,6 +9,7 @@ import { Button } from '../components/Button';
 import { PasswordField } from '../components/PasswordField';
 import { TextField } from '../components/TextField';
 import { formErrorsFrom, noErrors, type FormErrors } from '../lib/form-errors';
+import { useDocumentTitle } from '../lib/use-document-title';
 
 const roles = [
   {
@@ -28,6 +29,7 @@ const roles = [
 ] as const;
 
 export default function RegisterPage() {
+  useDocumentTitle('Create your account');
   const { user, register } = useAuth();
   const navigate = useNavigate();
   const [form, setForm] = useState<RegisterInput>({
