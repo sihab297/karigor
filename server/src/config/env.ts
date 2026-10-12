@@ -7,6 +7,7 @@ const envSchema = z.object({
   PORT: z.coerce.number().int().positive().default(4000),
   CLIENT_URL: z.url().default('http://localhost:5173'),
   MONGODB_URI: z.string({ error: MISSING }).min(1, MISSING),
+  JWT_SECRET: z.string({ error: MISSING }).min(32, 'must be at least 32 characters long'),
   GEMINI_API_KEY: z.string().optional(),
   GEMINI_MODEL: z.string().default('gemini-3.8-flash'),
   GEMINI_FALLBACK_MODELS: z
@@ -30,3 +31,5 @@ export function loadEnv(source: NodeJS.ProcessEnv = process.env): Env {
   }
   return parsed.data;
 }
+
+export const env = loadEnv();

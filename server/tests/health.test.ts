@@ -2,7 +2,7 @@ import request from 'supertest';
 import { describe, expect, it } from 'vitest';
 import { createApp } from '../src/app';
 
-const app = createApp({ clientUrl: 'http://localhost:5173' });
+const app = createApp();
 
 describe('GET /api/v1/health', () => {
   it('says the API is running', async () => {

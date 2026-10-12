@@ -35,10 +35,13 @@ karigor/
 │   │   ├── middleware/    error handling, login checks
 │   │   ├── models/        Mongoose models
 │   │   ├── routes/        API routes under /api/v1
+│   │   ├── seed/          test data for npm run seed
 │   │   ├── services/      business logic
-│   │   └── utils/
-│   ├── scripts/           AI check script and test cases
-│   └── tests/             automatic tests
+│   │   ├── types/         TypeScript additions (e.g. req.user)
+│   │   ├── utils/         small helpers (phone, password, tokens)
+│   │   └── validators/    Zod rules for request bodies
+│   ├── scripts/           seed script, AI check script and test cases
+│   └── tests/             automatic tests (use an in-memory MongoDB, never real data)
 └── docs/                  planning documents (start with docs/README.md)
 ```
 

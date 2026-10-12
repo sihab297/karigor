@@ -1,4 +1,4 @@
-import { model, Schema, type InferSchemaType } from 'mongoose';
+import { model, Schema, type HydratedDocument, type InferSchemaType } from 'mongoose';
 import { BD_PHONE_REGEX, normalizeBdPhone } from '../utils/phone';
 import { toJSONOptions } from '../utils/to-json';
 
@@ -46,4 +46,5 @@ userSchema.index(
 );
 
 export type User = InferSchemaType<typeof userSchema>;
+export type UserDocument = HydratedDocument<User>;
 export const UserModel = model('User', userSchema);

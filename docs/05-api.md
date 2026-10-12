@@ -21,11 +21,49 @@
 
 ### Accounts
 
-| Method | Path             | Who    | What it does                                             |
-| ------ | ---------------- | ------ | -------------------------------------------------------- |
-| POST   | `/auth/register` | Public | Sign up as customer or technician; returns a token       |
-| POST   | `/auth/login`    | Public | Log in with phone or email and password; returns a token |
-| GET    | `/auth/me`       | Any    | The logged-in user                                       |
+| Method | Path             | Who    | What it does                                                    |
+| ------ | ---------------- | ------ | --------------------------------------------------------------- |
+| POST   | `/auth/register` | Public | Sign up as customer or technician; returns a token (done)       |
+| POST   | `/auth/login`    | Public | Log in with phone or email and password; returns a token (done) |
+| GET    | `/auth/me`       | Any    | The logged-in user (done)                                       |
+
+**Sign up:** `POST /auth/register`
+
+```json
+{
+  "name": "Nusrat Jahan",
+  "phone": "01812345678",
+  "email": "",
+  "password": "at-least-8",
+  "role": "customer"
+}
+```
+
+- `email` is optional. `role` is `customer` or `technician` (nobody can sign up as admin).
+- The phone can be typed any common way (`+880 1812-345678`, Bangla digits); it is saved as
+  `01812345678`.
+
+**Log in:** `POST /auth/login`
+
+```json
+{ "phoneOrEmail": "01812345678", "password": "at-least-8" }
+```
+
+**Both answer with:** `{ "data": { "token": "...", "user": { "id", "name", "phone", "email", "role", "status", ... } } }`.
+Keep the token and send it as `Authorization: Bearer <token>`. It lasts 7 days.
+
+**Errors**
+
+| Status | Code                | When                                                            |
+| ------ | ------------------- | --------------------------------------------------------------- |
+| 400    | `VALIDATION_ERROR`  | A field is wrong; `details` lists `{ field, message }` for each |
+| 401    | `WRONG_LOGIN`       | Wrong phone/email or password (same message for both)           |
+| 401    | `NOT_LOGGED_IN`     | No token sent                                                   |
+| 401    | `INVALID_TOKEN`     | Token is fake, expired, or the account no longer exists         |
+| 403    | `ACCOUNT_BLOCKED`   | The admin blocked this account                                  |
+| 409    | `PHONE_TAKEN`       | Sign up with a phone that already has an account                |
+| 409    | `EMAIL_TAKEN`       | Sign up with an email that already has an account               |
+| 429    | `TOO_MANY_ATTEMPTS` | More than 20 sign-up/login tries in 15 minutes from one IP      |
 
 ### Catalog
 
