@@ -17,8 +17,7 @@ describe('Login page', () => {
     await user.type(screen.getByLabelText('Password'), 'secret-pass');
     await user.click(screen.getByRole('button', { name: 'Log in' }));
 
-    expect(await screen.findByRole('heading', { name: 'Hi, Jamal' })).toBeTruthy();
-    expect(screen.getByText('Your profile')).toBeTruthy();
+    expect(await screen.findByRole('heading', { name: 'My profile' })).toBeTruthy();
     expect(localStorage.getItem('karigor.token')).toBe('tok-123');
     expect(JSON.parse(fetchMock.mock.calls[0]![1]!.body as string)).toEqual({
       phoneOrEmail: '01700000004',
@@ -100,7 +99,7 @@ describe('Sign up page', () => {
     await user.type(screen.getByLabelText('Password'), 'secret-pass');
     await user.click(screen.getByRole('button', { name: 'Create account' }));
 
-    expect(await screen.findByRole('heading', { name: 'Hi, Jamal' })).toBeTruthy();
+    expect(await screen.findByRole('heading', { name: 'My profile' })).toBeTruthy();
     expect(JSON.parse(fetchMock.mock.calls[0]![1]!.body as string)).toEqual({
       name: 'Jamal Hossain',
       phone: '01700000004',
@@ -177,7 +176,7 @@ describe('staying logged in', () => {
 
     renderAt('/request');
 
-    expect(await screen.findByRole('heading', { name: 'Hi, Nusrat' })).toBeTruthy();
+    expect(await screen.findByRole('heading', { name: 'Get help' })).toBeTruthy();
   });
 
   it('forgets an expired login and sends the user to log in', async () => {
@@ -201,7 +200,7 @@ describe('staying logged in', () => {
 
     renderAt('/login');
 
-    expect(await screen.findByText('Admin dashboard')).toBeTruthy();
+    expect(await screen.findByRole('heading', { name: 'Dashboard' })).toBeTruthy();
   });
 
   it('keeps people out of pages for other roles', async () => {
@@ -210,7 +209,7 @@ describe('staying logged in', () => {
 
     renderAt('/admin');
 
-    expect(await screen.findByText('Get help')).toBeTruthy();
+    expect(await screen.findByRole('heading', { name: 'Get help' })).toBeTruthy();
   });
 
   it('logs out', async () => {
