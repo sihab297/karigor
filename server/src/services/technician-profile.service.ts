@@ -1,9 +1,12 @@
-import type { Types } from 'mongoose';
+import { isValidObjectId, type HydratedDocument, type Types } from 'mongoose';
 import { ServiceModel } from '../models/service.model';
-import { TechnicianProfileModel } from '../models/technician-profile.model';
+import { TechnicianProfileModel, type TechnicianProfile } from '../models/technician-profile.model';
 import { AppError } from '../utils/app-error';
 import { roundCoordinate } from '../utils/geo';
+import { nidPhotoLink, uploadNidPhoto } from './nid-storage';
 import type { ProfileInput } from '../validators/technician.validators';
+
+type TechnicianProfileDocument = HydratedDocument<TechnicianProfile>;
 
 function fieldError(field: string, message: string) {
   return new AppError(400, 'VALIDATION_ERROR', 'Please check the highlighted fields.', [
@@ -72,19 +75,45 @@ export async function saveMyProfile(userId: Types.ObjectId, input: ProfileInput)
   }
 
   existing.set(details);
-  // a rejected technician who fixes their profile goes back in the queue
-  if (existing.approvalStatus === 'rejected') {
-    existing.approvalStatus = 'pending';
-    existing.rejectionReason = undefined;
-  }
+  backInQueueIfRejected(existing);
   return existing.save();
 }
 
-export async function setAvailability(userId: Types.ObjectId, acceptingJobs: boolean) {
+// a rejected technician who fixes their profile or photo goes back in the queue
+function backInQueueIfRejected(profile: TechnicianProfileDocument) {
+  if (profile.approvalStatus === 'rejected') {
+    profile.approvalStatus = 'pending';
+    profile.rejectionReason = undefined;
+  }
+}
+
+async function findProfileOrFail(userId: Types.ObjectId) {
   const profile = await TechnicianProfileModel.findOne({ userId });
   if (!profile) {
     throw new AppError(404, 'PROFILE_NOT_FOUND', 'Fill in your profile first.');
   }
+  return profile;
+}
+
+export async function setAvailability(userId: Types.ObjectId, acceptingJobs: boolean) {
+  const profile = await findProfileOrFail(userId);
   profile.acceptingJobs = acceptingJobs;
   return profile.save();
+}
+
+export async function saveNidPhoto(userId: Types.ObjectId, photo: Buffer) {
+  const profile = await findProfileOrFail(userId);
+  profile.nidPhotoPublicId = await uploadNidPhoto(photo, userId.toString());
+  backInQueueIfRejected(profile);
+  return profile.save();
+}
+
+export async function getNidPhotoLink(technicianUserId: string) {
+  const profile = isValidObjectId(technicianUserId)
+    ? await TechnicianProfileModel.findOne({ userId: technicianUserId })
+    : null;
+  if (!profile?.nidPhotoPublicId) {
+    throw new AppError(404, 'NID_NOT_FOUND', "This technician hasn't uploaded an NID photo yet.");
+  }
+  return nidPhotoLink(profile.nidPhotoPublicId);
 }

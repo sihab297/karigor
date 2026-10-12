@@ -92,7 +92,7 @@ Keep the token and send it as `Authorization: Bearer <token>`. It lasts 7 days.
 | GET    | `/technicians/:id/reviews`     | Any | Reviews for a technician                            |
 | GET    | `/technicians/me/profile`      | T   | My own profile and approval status (done)           |
 | PUT    | `/technicians/me/profile`      | T   | Save services, skills, area, location, hours (done) |
-| POST   | `/technicians/me/nid`          | T   | Upload NID photo (private)                          |
+| POST   | `/technicians/me/nid`          | T   | Upload NID photo (private) (done)                   |
 | PATCH  | `/technicians/me/availability` | T   | Turn "accepting jobs" on or off (done)              |
 
 **Get my profile:** `GET /technicians/me/profile` answers `{ "data": { "profile": null } }` until
@@ -123,6 +123,15 @@ the technician saves it for the first time.
 **Accepting jobs:** `PATCH /technicians/me/availability` with `{ "acceptingJobs": false }`.
 Answers 404 `PROFILE_NOT_FOUND` if the profile has not been saved yet.
 
+**NID photo:** `POST /technicians/me/nid` as `multipart/form-data` with the file in the `photo`
+field.
+
+- JPG or PNG, up to 5 MB. The first bytes of the file are checked, so a renamed file is refused.
+- Saved on Cloudinary as an **authenticated** image (no public link), always as JPG.
+- Answers with the profile, which shows `hasNidPhoto: true` (the photo id itself is never sent).
+- A rejected technician who uploads a new photo goes back to `pending`.
+- Errors: `NO_PHOTO`, `WRONG_FILE_TYPE`, `FILE_TOO_LARGE` (400), `PROFILE_NOT_FOUND` (404).
+
 ### Bookings, chat and reviews
 
 | Method | Path                     | Who  | What it does                                                                                                 |
@@ -136,16 +145,16 @@ Answers 404 `PROFILE_NOT_FOUND` if the profile has not been saved yet.
 
 ### Admin
 
-| Method              | Path                                                          | Who | What it does                      |
-| ------------------- | ------------------------------------------------------------- | --- | --------------------------------- |
-| GET                 | `/admin/stats`                                                | A   | Numbers for the dashboard         |
-| GET                 | `/admin/technicians?status=pending`                           | A   | Technicians waiting for approval  |
-| GET                 | `/admin/technicians/:id/nid`                                  | A   | Short-lived link to the NID photo |
-| PATCH               | `/admin/technicians/:id/approval`                             | A   | Approve or reject (with reason)   |
-| GET                 | `/admin/users`                                                | A   | All users                         |
-| PATCH               | `/admin/users/:id/status`                                     | A   | Block or unblock                  |
-| GET                 | `/admin/bookings`                                             | A   | All bookings                      |
-| POST, PATCH, DELETE | `/admin/services`, `/admin/price-items`, `/admin/safety-tips` | A   | Manage the catalog                |
+| Method              | Path                                                          | Who | What it does                                                                                                       |
+| ------------------- | ------------------------------------------------------------- | --- | ------------------------------------------------------------------------------------------------------------------ |
+| GET                 | `/admin/stats`                                                | A   | Numbers for the dashboard                                                                                          |
+| GET                 | `/admin/technicians?status=pending`                           | A   | Technicians waiting for approval                                                                                   |
+| GET                 | `/admin/technicians/:id/nid`                                  | A   | Short-lived link to the NID photo (done): `{ url, expiresAt }`, valid 5 minutes; `:id` is the technician's user id |
+| PATCH               | `/admin/technicians/:id/approval`                             | A   | Approve or reject (with reason)                                                                                    |
+| GET                 | `/admin/users`                                                | A   | All users                                                                                                          |
+| PATCH               | `/admin/users/:id/status`                                     | A   | Block or unblock                                                                                                   |
+| GET                 | `/admin/bookings`                                             | A   | All bookings                                                                                                       |
+| POST, PATCH, DELETE | `/admin/services`, `/admin/price-items`, `/admin/safety-tips` | A   | Manage the catalog                                                                                                 |
 
 ## Live events (Socket.IO)
 
