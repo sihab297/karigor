@@ -176,6 +176,17 @@ describe('PUT /technicians/me/profile', () => {
     });
   });
 
+  it('only allows 5, 10 or 15 km travel distance', async () => {
+    expect((await saveProfile({ ...goodProfile, serviceRadiusKm: 15 })).status).toBe(200);
+
+    const res = await saveProfile({ ...goodProfile, serviceRadiusKm: 12 });
+    expect(res.status).toBe(400);
+    expect(res.body.error.details).toContainEqual({
+      field: 'serviceRadiusKm',
+      message: 'Choose 5, 10 or 15 km',
+    });
+  });
+
   it('checks working days and hours', async () => {
     const res = await saveProfile({
       ...goodProfile,

@@ -26,15 +26,17 @@ interface RequestOptions {
 
 export async function api<T>(path: string, { method = 'GET', body }: RequestOptions = {}) {
   const token = getToken();
+  // files go as FormData; the browser sets the content type itself
+  const isForm = body instanceof FormData;
   let res: Response;
   try {
     res = await fetch(`${API_URL}${path}`, {
       method,
       headers: {
-        ...(body !== undefined && { 'Content-Type': 'application/json' }),
+        ...(body !== undefined && !isForm && { 'Content-Type': 'application/json' }),
         ...(token && { Authorization: `Bearer ${token}` }),
       },
-      body: body === undefined ? undefined : JSON.stringify(body),
+      body: body === undefined ? undefined : isForm ? body : JSON.stringify(body),
     });
   } catch {
     const devHint = import.meta.env.DEV

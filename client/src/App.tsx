@@ -2,6 +2,7 @@ import { Route, Routes } from 'react-router';
 import { RequireRole } from './auth/RequireRole';
 import { AppLayout } from './components/AppLayout';
 import ComingSoonPage from './pages/ComingSoonPage';
+import TechnicianProfilePage from './pages/technician/TechnicianProfilePage';
 import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
 import NotFoundPage from './pages/NotFoundPage';
@@ -48,15 +49,7 @@ export default function App() {
               />
             }
           />
-          <Route
-            path="/tech/profile"
-            element={
-              <ComingSoonPage
-                title="My profile"
-                description="Your services, skills, work area, hours and NID photo."
-              />
-            }
-          />
+          <Route path="/tech/profile" element={<TechnicianProfilePage />} />
         </Route>
       </Route>
 
