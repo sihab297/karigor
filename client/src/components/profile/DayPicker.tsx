@@ -1,13 +1,4 @@
-// the week starts on Saturday in Bangladesh
-const days = [
-  { value: 6, short: 'Sat', name: 'Saturday' },
-  { value: 0, short: 'Sun', name: 'Sunday' },
-  { value: 1, short: 'Mon', name: 'Monday' },
-  { value: 2, short: 'Tue', name: 'Tuesday' },
-  { value: 3, short: 'Wed', name: 'Wednesday' },
-  { value: 4, short: 'Thu', name: 'Thursday' },
-  { value: 5, short: 'Fri', name: 'Friday' },
-];
+import { WEEK } from '../../lib/days';
 
 interface DayPickerProps {
   selected: number[];
@@ -17,7 +8,7 @@ interface DayPickerProps {
 export function DayPicker({ selected, onToggle }: DayPickerProps) {
   return (
     <div role="group" aria-label="Working days" className="grid grid-cols-7 gap-1.5">
-      {days.map((day) => {
+      {WEEK.map((day) => {
         const on = selected.includes(day.value);
         return (
           <button

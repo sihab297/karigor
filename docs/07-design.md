@@ -46,16 +46,22 @@ Both support Bangla properly. They load from Google Fonts in `client/index.html`
 
 Use these instead of writing new styles. They live in `client/src/components/`.
 
-| Component       | What it is                                                                 |
-| --------------- | -------------------------------------------------------------------------- |
-| `Logo`          | The ক mark with "Karigor" and "কারিগর" (temporary logo)                    |
-| `Button`        | Main (`primary`) or outlined (`secondary`), with a loading spinner         |
-| `TextField`     | Label, input, helper text and error message, all linked for screen readers |
-| `PasswordField` | `TextField` with a show/hide eye button                                    |
-| `Alert`         | Red message box for errors that are not about one field                    |
-| `AuthLayout`    | The page frame used by log in and sign up                                  |
-| `AppLayout`     | Header, menu and log out for every page behind login                       |
-| `Switch`        | On/off switch, like "Taking jobs"                                          |
+| Component       | What it is                                                                                   |
+| --------------- | -------------------------------------------------------------------------------------------- |
+| `Logo`          | The ক mark with "Karigor" and "কারিগর" (temporary logo)                                      |
+| `Button`        | Main (`primary`) or outlined (`secondary`), with a loading spinner                           |
+| `TextField`     | Label, input, helper text and error message, all linked for screen readers                   |
+| `PasswordField` | `TextField` with a show/hide eye button                                                      |
+| `Alert`         | Red message box for errors that are not about one field                                      |
+| `AuthLayout`    | The page frame used by log in and sign up                                                    |
+| `AppLayout`     | Header, menu and log out for every page behind login                                         |
+| `Switch`        | On/off switch, like "Taking jobs"                                                            |
+| `Modal`         | Pop-up over the page: closes with ✕, Escape or a click outside, and puts keyboard focus back |
+
+`Button` also has a `danger` style (red) for actions that can't be undone easily, like rejecting
+a technician. Use it only for those.
+
+Admin pieces live in `client/src/components/admin/`: `TechnicianReviewCard` and `NidPhotoDialog`.
 
 Pieces made for the technician profile, in `client/src/components/profile/`, can be reused
 elsewhere: `StepCard` (numbered section that turns green when done), `ServicePicker` (services and

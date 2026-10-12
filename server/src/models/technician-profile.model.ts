@@ -55,6 +55,8 @@ const technicianProfileSchema = new Schema(
     profilePhotoUrl: { type: String },
     approvalStatus: { type: String, enum: APPROVAL_STATUSES, default: 'pending' },
     rejectionReason: { type: String, trim: true, maxlength: 300 },
+    reviewedAt: { type: Date },
+    reviewedBy: { type: Schema.Types.ObjectId, ref: 'User' },
     ratingAvg: { type: Number, default: 0, min: 0, max: 5 },
     ratingCount: { type: Number, default: 0, min: 0 },
     // e.g. { electrician: 18 }
