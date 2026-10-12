@@ -30,8 +30,8 @@ services ──► priceItems        safetyTips
 | `reviews`            | A customer's rating and comment after a job       |
 
 The starting data for `services`, `priceItems` and `safetyTips` comes from the JSON files in
-`server/src/data/` (see [01-data-lists.md](01-data-lists.md)). A seed script will load them into
-MongoDB, and after that the admin edits them from the dashboard.
+`server/src/data/` (see [01-data-lists.md](01-data-lists.md)). `npm run seed -w server` loads them
+into MongoDB, and after that the admin edits them from the dashboard.
 
 ## Fields
 

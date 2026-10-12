@@ -60,7 +60,11 @@ const technicianProfileSchema = new Schema(
     // e.g. { electrician: 18 }
     jobsDone: { type: Map, of: Number, default: () => new Map() },
   },
-  { timestamps: true, toJSON: toJSONOptions(['nidPhotoPublicId']) },
+  {
+    collection: 'technicianProfiles',
+    timestamps: true,
+    toJSON: toJSONOptions(['nidPhotoPublicId']),
+  },
 );
 
 technicianProfileSchema

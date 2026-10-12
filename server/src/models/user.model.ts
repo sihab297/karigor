@@ -35,7 +35,7 @@ const userSchema = new Schema(
     role: { type: String, enum: USER_ROLES, required: [true, 'Role is required'] },
     status: { type: String, enum: USER_STATUSES, default: 'active' },
   },
-  { timestamps: true, toJSON: toJSONOptions(['passwordHash']) },
+  { collection: 'users', timestamps: true, toJSON: toJSONOptions(['passwordHash']) },
 );
 
 userSchema.index({ phone: 1 }, { unique: true });

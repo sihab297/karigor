@@ -1,7 +1,8 @@
 # Data Lists
 
-The starting data lives in `server/src/data/`. The AI reads it, and later a seed script will copy
-it into MongoDB so the admin can edit it.
+The starting data lives in `server/src/data/`. The AI reads it, and `npm run seed -w server` copies
+it into MongoDB so the admin can edit it later. The seed also creates the admin account and the
+test accounts listed in the main README.
 
 | File               | What is in it                                                        |
 | ------------------ | -------------------------------------------------------------------- |
