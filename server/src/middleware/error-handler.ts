@@ -14,10 +14,20 @@ export const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
     res.status(400).json({
       error: {
         code: 'VALIDATION_ERROR',
-        message: 'Some fields are not valid.',
-        details: err.issues,
+        message: 'Please check the highlighted fields.',
+        details: err.issues.map((issue) => ({
+          field: issue.path.join('.'),
+          message: issue.message,
+        })),
       },
     });
+    return;
+  }
+
+  if (err?.type === 'entity.parse.failed') {
+    res
+      .status(400)
+      .json({ error: { code: 'INVALID_JSON', message: 'The request body is not valid JSON.' } });
     return;
   }
 
