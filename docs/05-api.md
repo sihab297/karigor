@@ -9,7 +9,9 @@
 - **Success response:** `{ "data": ... }`
 - **Error response:** `{ "error": { "code": "NOT_FOUND", "message": "...", "details": ... } }`
 - **Lists:** `?page=1&limit=20`
-- **Roles:** C = customer, T = technician, A = admin, Any = anyone logged in, Public = no login
+- **Roles:** C = customer, T = technician, A = admin, Any = anyone logged in, Public = no login.
+  The server checks this on every request with `requireAuth` and `requireRole(...)`, using the
+  role saved in the database, so a role change or a block works straight away.
 
 ## Endpoints
 
@@ -61,6 +63,7 @@ Keep the token and send it as `Authorization: Bearer <token>`. It lasts 7 days.
 | 401    | `NOT_LOGGED_IN`     | No token sent                                                   |
 | 401    | `INVALID_TOKEN`     | Token is fake, expired, or the account no longer exists         |
 | 403    | `ACCOUNT_BLOCKED`   | The admin blocked this account                                  |
+| 403    | `NOT_ALLOWED`       | Logged in, but this role cannot use the endpoint                |
 | 409    | `PHONE_TAKEN`       | Sign up with a phone that already has an account                |
 | 409    | `EMAIL_TAKEN`       | Sign up with an email that already has an account               |
 | 429    | `TOO_MANY_ATTEMPTS` | More than 20 sign-up/login tries in 15 minutes from one IP      |
