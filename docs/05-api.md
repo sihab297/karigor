@@ -72,7 +72,8 @@ Keep the token and send it as `Authorization: Bearer <token>`. It lasts 7 days.
 
 | Method | Path                        | Who    | What it does                                                |
 | ------ | --------------------------- | ------ | ----------------------------------------------------------- |
-| GET    | `/services`                 | Public | The 7 services with their skills                            |
+| GET    | `/services`                 | Public | Active services with their skills, A to Z (done)            |
+| GET    | `/areas`                    | Public | Dhaka areas with map positions, A to Z (done)               |
 | GET    | `/services/:id/quick-picks` | Public | Quick-pick buttons for the quick path (from the price list) |
 
 ### Problems and AI
@@ -116,7 +117,8 @@ the technician saves it for the first time.
 - 1 to 3 services, checked against the catalog in the database (switched-off services are refused).
 - Skills must belong to the chosen services, with at least one skill for each service.
 - `location` must be inside Dhaka. It is saved as GeoJSON `[lng, lat]`, rounded to 6 decimals.
-- `serviceRadiusKm` is optional (default 10). Days are 0 = Sunday to 6 = Saturday.
+- `serviceRadiusKm` is 5, 10 or 15 (default 10); that is enough for Dhaka. Days are 0 = Sunday
+  to 6 = Saturday.
 - The first save creates the profile with `approvalStatus: "pending"`. If a rejected technician
   saves again, the profile goes back to `pending` so the admin can check it again.
 

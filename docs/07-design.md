@@ -8,17 +8,18 @@ them there and the whole site updates.
 
 ## Colors
 
-| Name (Tailwind class)              | Color                 | Use it for                                         |
-| ---------------------------------- | --------------------- | -------------------------------------------------- |
-| `turmeric`                         | `#F2B33D`             | Main buttons and the logo. Always with dark text.  |
-| `turmeric-dark`                    | `#E0A02A`             | Main button when hovered                           |
-| `turmeric-soft`                    | `#FDF0D2`             | Chosen options, small tags (like service names)    |
-| `tea`                              | `#2A2118`             | Text, headings, borders of focused fields          |
-| `muted`                            | `#6B6257`             | Helper text, less important text                   |
-| `pond`                             | `#2F6F62`             | Links and the keyboard focus ring                  |
-| `paper`                            | `#F6F6F3`             | Page background                                    |
-| `line`                             | `#E6E1D8`             | Borders of cards and fields                        |
-| `alert`, `alert-soft`, `alert-ink` | `#B42318` and friends | Errors and emergencies only. Never for decoration. |
+| Name (Tailwind class)              | Color                 | Use it for                                                         |
+| ---------------------------------- | --------------------- | ------------------------------------------------------------------ |
+| `turmeric`                         | `#F2B33D`             | Main buttons and the logo. Always with dark text.                  |
+| `turmeric-dark`                    | `#E0A02A`             | Main button when hovered                                           |
+| `turmeric-soft`                    | `#FDF0D2`             | Chosen options, small tags (like service names)                    |
+| `tea`                              | `#2A2118`             | Text, headings, borders of focused fields                          |
+| `muted`                            | `#6B6257`             | Helper text, less important text                                   |
+| `pond`                             | `#2F6F62`             | Links, the keyboard focus ring, "done" ticks, switches that are on |
+| `pond-soft`                        | `#E3F0EC`             | Good news boxes, like "Approved"                                   |
+| `paper`                            | `#F6F6F3`             | Page background                                                    |
+| `line`                             | `#E6E1D8`             | Borders of cards and fields                                        |
+| `alert`, `alert-soft`, `alert-ink` | `#B42318` and friends | Errors and emergencies only. Never for decoration.                 |
 
 Rules:
 
@@ -53,6 +54,21 @@ Use these instead of writing new styles. They live in `client/src/components/`.
 | `PasswordField` | `TextField` with a show/hide eye button                                    |
 | `Alert`         | Red message box for errors that are not about one field                    |
 | `AuthLayout`    | The page frame used by log in and sign up                                  |
+| `AppLayout`     | Header, menu and log out for every page behind login                       |
+| `Switch`        | On/off switch, like "Taking jobs"                                          |
+
+Pieces made for the technician profile, in `client/src/components/profile/`, can be reused
+elsewhere: `StepCard` (numbered section that turns green when done), `ServicePicker` (services and
+skill chips), `LocationPicker` (map with a draggable turmeric pin), `DayPicker` (Saturday to
+Friday), `NidUpload` (photo upload box with preview) and `StatusBanner`.
+
+## Patterns
+
+- **Selected things** (services, skills, days) get a dark border and a turmeric fill, plus a
+  tick, so they don't rely on color alone.
+- **Long forms** are split into numbered steps on one page, with a save bar fixed to the bottom.
+- **Maps** use OpenStreetMap through Leaflet, with the turmeric pin. Customers only ever see a
+  technician's area name, never their exact pin.
 
 ## Words
 

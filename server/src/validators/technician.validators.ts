@@ -38,7 +38,7 @@ export const profileSchema = z.object({
         lng <= DHAKA_BOUNDS.maxLng,
       'Pick a location inside Dhaka',
     ),
-  serviceRadiusKm: z.number().int().min(1).max(30).default(10),
+  serviceRadiusKm: z.literal([5, 10, 15], { error: 'Choose 5, 10 or 15 km' }).default(10),
   workingDays: z
     .array(z.number().int().min(0).max(6), { error: 'Choose your working days' })
     .min(1, 'Choose at least one working day')
