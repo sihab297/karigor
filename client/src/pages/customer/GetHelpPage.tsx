@@ -8,7 +8,7 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import { useEffect, useId, useRef, useState, type FormEvent, type KeyboardEvent } from 'react';
-import { useNavigate, useSearchParams } from 'react-router';
+import { useLocation, useNavigate, useSearchParams } from 'react-router';
 import { Alert } from '../../components/Alert';
 import { Button } from '../../components/Button';
 import { CheckingCard } from '../../components/help/CheckingCard';
@@ -37,13 +37,15 @@ export default function GetHelpPage() {
   useDocumentTitle('Get help');
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  // 'Add details' on the result page sends their words back here
+  const earlierText = (useLocation().state as { text?: string } | null)?.text ?? '';
   // e.g. /request?service=plumber from a service button on the home page
   const startService = searchParams.get('service') ?? '';
   const [mode, setMode] = useState<Mode>(startService ? 'quick' : 'describe');
-  const [text, setText] = useState('');
+  const [text, setText] = useState(startService ? '' : earlierText);
   const [photos, setPhotos] = useState<File[]>([]);
   const [serviceId, setServiceId] = useState(startService);
-  const [line, setLine] = useState('');
+  const [line, setLine] = useState(startService ? earlierText : '');
   const [services, setServices] = useState<Service[] | null>(null);
   const [servicesError, setServicesError] = useState('');
   const [attempt, setAttempt] = useState(0);

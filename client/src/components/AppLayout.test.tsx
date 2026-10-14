@@ -58,6 +58,27 @@ describe('menu for each role', () => {
     );
   });
 
+  it('keeps Get help marked while the customer looks at a result', async () => {
+    loggedInAs(testUsers.customer);
+    renderAt('/request/r1');
+
+    await screen.findByRole('heading', { name: "We couldn't find this problem" });
+    expect(within(mainNav()).getByRole('link', { name: 'Get help' })).toHaveAttribute(
+      'aria-current',
+      'page',
+    );
+  });
+
+  it('does not mark Dashboard on other admin pages', async () => {
+    loggedInAs(testUsers.admin);
+    renderAt('/admin/catalog');
+
+    await screen.findByRole('heading', { name: 'Services and prices' });
+    expect(within(mainNav()).getByRole('link', { name: 'Dashboard' })).not.toHaveAttribute(
+      'aria-current',
+    );
+  });
+
   it('shows who is logged in and sets the tab title', async () => {
     loggedInAs(testUsers.technician);
     renderAt('/tech/profile');
