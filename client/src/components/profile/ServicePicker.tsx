@@ -1,26 +1,6 @@
-import {
-  Check,
-  Droplet,
-  Flame,
-  Hammer,
-  PaintRoller,
-  Snowflake,
-  Sparkles,
-  Wrench,
-  Zap,
-  type LucideIcon,
-} from 'lucide-react';
+import { Check } from 'lucide-react';
 import type { Service } from '../../pages/technician/profile-types';
-
-const icons: Record<string, LucideIcon> = {
-  plumber: Droplet,
-  electrician: Zap,
-  'gas-fitter': Flame,
-  'ac-repair': Snowflake,
-  painter: PaintRoller,
-  carpenter: Hammer,
-  cleaner: Sparkles,
-};
+import { ServiceIcon } from '../ServiceIcon';
 
 export const MAX_SERVICES = 3;
 
@@ -48,7 +28,6 @@ export function ServicePicker({
     <div className="grid gap-4">
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
         {services.map((service) => {
-          const Icon = icons[service.id] ?? Wrench;
           const on = serviceIds.includes(service.id);
           return (
             <button
@@ -61,7 +40,7 @@ export function ServicePicker({
                 on ? 'border-tea bg-turmeric-soft' : 'border-line bg-white hover:border-muted'
               }`}
             >
-              <Icon size={20} aria-hidden="true" className="shrink-0" />
+              <ServiceIcon serviceId={service.id} />
               <span className="flex-1">{service.name}</span>
               {on && (
                 <span className="grid size-5 place-items-center rounded-full bg-tea text-white">

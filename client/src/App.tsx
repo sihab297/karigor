@@ -4,6 +4,7 @@ import { AppLayout } from './components/AppLayout';
 import ComingSoonPage from './pages/ComingSoonPage';
 import AdminTechniciansPage from './pages/admin/AdminTechniciansPage';
 import TechnicianProfilePage from './pages/technician/TechnicianProfilePage';
+import GetHelpPage from './pages/customer/GetHelpPage';
 import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
 import NotFoundPage from './pages/NotFoundPage';
@@ -18,12 +19,13 @@ export default function App() {
 
       <Route element={<RequireRole role="customer" />}>
         <Route element={<AppLayout />}>
+          <Route path="/request" element={<GetHelpPage />} />
           <Route
-            path="/request"
+            path="/request/:id"
             element={
               <ComingSoonPage
-                title="Get help"
-                description="Tell us what's wrong in Bangla or English, or add a photo."
+                title="Your result"
+                description="The service, the price and any safety steps will show here."
               />
             }
           />

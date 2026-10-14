@@ -9,7 +9,8 @@ vi.mock('../components/profile/LocationPicker', () => ({
   ),
 }));
 
-URL.createObjectURL ??= () => 'blob:preview';
+let previewCount = 0;
+URL.createObjectURL ??= () => `blob:preview-${previewCount++}`;
 URL.revokeObjectURL ??= () => undefined;
 
 afterEach(() => {

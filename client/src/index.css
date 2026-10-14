@@ -19,6 +19,17 @@
   --font-body: 'Hind Siliguri', 'Noto Sans Bengali', system-ui, sans-serif;
 
   --radius-box: 10px;
+
+  /* moving bar while the AI checks a problem */
+  --animate-slide: slide 1.2s ease-in-out infinite;
+  @keyframes slide {
+    from {
+      transform: translateX(-100%);
+    }
+    to {
+      transform: translateX(300%);
+    }
+  }
 }
 
 @layer base {
