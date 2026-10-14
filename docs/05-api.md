@@ -78,12 +78,38 @@ Keep the token and send it as `Authorization: Bearer <token>`. It lasts 7 days.
 
 ### Problems and AI
 
-| Method | Path                    | Who | What it does                                                                                                                                                 |
-| ------ | ----------------------- | --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| POST   | `/problems/analyze`     | C   | Sends text (+ up to 3 photos, + chosen service on the quick path) to the AI; returns the result, price estimate and safety tips. Limit: 10 per hour per user |
-| GET    | `/problems/:id`         | C   | A saved AI result                                                                                                                                            |
-| PATCH  | `/problems/:id`         | C   | Customer changes the service type (`finalServiceId`)                                                                                                         |
-| POST   | `/problems/:id/matches` | C   | Body: location and date/time. Returns the top 3 technicians with the facts behind each                                                                       |
+| Method | Path                    | Who  | What it does                                                                                                                             |
+| ------ | ----------------------- | ---- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| POST   | `/problems/analyze`     | C    | Sends text (+ up to 3 photos, + chosen service on the quick path) to the AI and saves the result (done). Limit: 10 per hour per customer |
+| GET    | `/problems/:id`         | C, A | A saved problem with its AI result (done); only the customer who sent it, or the admin                                                   |
+| PATCH  | `/problems/:id`         | C    | The customer accepts or changes the service: `{ "finalServiceId": "plumber" }` (done)                                                    |
+| POST   | `/problems/:id/matches` | C    | Body: location and date/time. Returns the top 3 technicians with the facts behind each                                                   |
+
+**Check a problem:** `POST /problems/analyze` as `multipart/form-data`:
+
+| Field             | Notes                                                              |
+| ----------------- | ------------------------------------------------------------------ |
+| `text`            | What is wrong, in Bangla, English or Banglish. 3 to 500 characters |
+| `photos`          | 0 to 3 files, JPG or PNG, up to 5 MB each (first bytes checked)    |
+| `chosenServiceId` | Quick path only: the service the customer picked                   |
+
+- Text or at least one photo is needed.
+- Photos are saved on Cloudinary as **authenticated** images under random names, then sent to the
+  AI together with the text. Phone numbers and emails in the text are hidden from the AI.
+- The AI works from the catalog in the database, so the admin's price changes count straight away.
+- Answers 201 with `{ report }`: `mode` (`describe` or `quick`), `text`, `chosenServiceId`,
+  `photoUrls` (signed links), `ai` (service, skills, summary, urgency, confidence, safety tips,
+  price lines, estimate, `matchesChosenService`, `followUpQuestion`, `model`, `latencyMs`).
+- If the AI fails or is busy, the report is still saved with `ai: null` and an `aiError` code
+  (`AI_FAILED`, `AI_NOT_SET_UP`), so the customer can choose the service themselves.
+- Each check counts towards the hourly limit (`AI_CHECKS_PER_HOUR` in `.env`, default 10). The
+  limit is checked before any photo is read.
+- Errors: `VALIDATION_ERROR`, `WRONG_FILE_TYPE`, `FILE_TOO_LARGE`, `TOO_MANY_FILES` (400),
+  `TOO_MANY_CHECKS` (429, the message says how many minutes to wait).
+
+**Other people's problems** answer 404 `PROBLEM_NOT_FOUND`, the same as a problem that doesn't
+exist. `PATCH` only changes `finalServiceId`; the AI result stays as it was, so we can later
+measure how often the AI was right.
 
 ### Technicians
 

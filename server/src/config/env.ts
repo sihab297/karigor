@@ -14,6 +14,8 @@ const envSchema = z.object({
   // mock = free keyword stand-in while building pages, real = Gemini
   AI_MODE: z.enum(['mock', 'real']).default('mock'),
   GEMINI_API_KEY: z.string().optional(),
+  // protects the free AI quota
+  AI_CHECKS_PER_HOUR: z.coerce.number().int().positive().default(10),
   GEMINI_MODEL: z.string().default('gemini-3.8-flash'),
   GEMINI_FALLBACK_MODELS: z
     .string()

@@ -1,18 +1,12 @@
 import { isValidObjectId, type HydratedDocument, type Types } from 'mongoose';
 import { ServiceModel } from '../models/service.model';
 import { TechnicianProfileModel, type TechnicianProfile } from '../models/technician-profile.model';
-import { AppError } from '../utils/app-error';
+import { AppError, fieldError } from '../utils/app-error';
 import { roundCoordinate } from '../utils/geo';
 import { nidPhotoLink, uploadNidPhoto } from './nid-storage';
 import type { ProfileInput } from '../validators/technician.validators';
 
 type TechnicianProfileDocument = HydratedDocument<TechnicianProfile>;
-
-function fieldError(field: string, message: string) {
-  return new AppError(400, 'VALIDATION_ERROR', 'Please check the highlighted fields.', [
-    { field, message },
-  ]);
-}
 
 // the admin can change the catalog, so check against the database, not the seed files
 async function checkServicesAndSkills(serviceIds: string[], skillIds: string[]) {

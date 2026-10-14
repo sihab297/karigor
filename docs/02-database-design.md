@@ -115,16 +115,19 @@ because the admin can change the catalog.
 Every AI check is saved. This lets the booking keep the AI result, and lets us measure how often
 the AI was right (useful for the final report).
 
-| Field             | Type             | Notes                                                                                                        |
-| ----------------- | ---------------- | ------------------------------------------------------------------------------------------------------------ |
-| `customerId`      | ObjectId → users |                                                                                                              |
-| `mode`            | enum             | `describe` or `quick`                                                                                        |
-| `chosenServiceId` | string           | quick path only                                                                                              |
-| `text`            | string           | what the customer wrote                                                                                      |
-| `photoUrls`       | string[]         | up to 3                                                                                                      |
-| `ai`              | object           | the checked AI result (service, skills, summary, urgency, confidence, emergency type, price lines, estimate) |
-| `aiLatencyMs`     | number           |                                                                                                              |
-| `finalServiceId`  | string           | after the customer accepts or changes the AI's choice                                                        |
+| Field             | Type             | Notes                                                                                                                                                               |
+| ----------------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `customerId`      | ObjectId → users |                                                                                                                                                                     |
+| `mode`            | enum             | `describe` or `quick`                                                                                                                                               |
+| `chosenServiceId` | string           | quick path only                                                                                                                                                     |
+| `text`            | string           | what the customer wrote                                                                                                                                             |
+| `photoIds`        | string[]         | up to 3 private Cloudinary ids; the API sends signed links, never the ids                                                                                           |
+| `ai`              | object           | the checked AI result (service, skills, summary, urgency, confidence, emergency type, price lines, estimate), plus `model` and `latencyMs`; `null` if the AI failed |
+| `aiError`         | string           | why the AI could not help, e.g. `AI_FAILED`                                                                                                                         |
+| `finalServiceId`  | string           | after the customer accepts or changes the AI's choice                                                                                                               |
+
+Index: `customerId` + `createdAt` (newest first), used for the customer's history and the hourly
+AI limit.
 
 ### bookings
 
