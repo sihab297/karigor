@@ -14,6 +14,7 @@ export interface PriceItem {
   minPrice: number;
   maxPrice: number;
   unit: string;
+  quickPick?: string;
 }
 
 export interface Service {

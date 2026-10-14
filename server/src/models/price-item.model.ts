@@ -11,6 +11,9 @@ const priceItemSchema = new Schema(
     minPrice: { type: Number, required: true, min: [0, 'Price cannot be negative'] },
     maxPrice: { type: Number, required: true, min: [0, 'Price cannot be negative'] },
     unit: { type: String, required: [true, 'Unit is required'], trim: true },
+    // short customer words for the quick path, e.g. 'Fan not working'
+    quickPick: { type: String, trim: true, maxlength: [40, 'Keep the quick pick short'] },
+    position: { type: Number, default: 0 },
     active: { type: Boolean, default: true },
   },
   { collection: 'priceItems', timestamps: true, toJSON: toJSONOptions() },
