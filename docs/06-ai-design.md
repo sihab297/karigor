@@ -61,6 +61,20 @@ data, so the AI cannot invent a price or give a dangerous instruction.
 
 The full instructions are in `buildSystemInstruction()` in `server/src/ai/prompt.ts`.
 
+## Mock AI and real AI
+
+`AI_MODE` in `server/.env` decides which one answers:
+
+| `AI_MODE` | What answers                                                                                                                  | Use it for                           |
+| --------- | ----------------------------------------------------------------------------------------------------------------------------- | ------------------------------------ |
+| `mock`    | `server/src/ai/mock.ts`: simple keyword rules in English, Banglish and Bangla. Free, instant, offline, same answer every time | Building and testing pages (default) |
+| `real`    | Google Gemini, with the backup models                                                                                         | Checking the AI, and the demo        |
+
+Both answers go through the same `buildAnalysis()` step, so prices, safety tips and the
+quick-path check work exactly the same way. Quick picks (like "Fan not working") are matched
+exactly to their price item. The mock gets all 22 cases in `ai-test-cases.json` right, but it only
+knows the words in its rules, so always try the real AI before a demo.
+
 ## Safety, privacy and limits
 
 - **Privacy:** only the problem text and photos are sent. Phone numbers and emails typed into

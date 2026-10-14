@@ -11,6 +11,8 @@ const envSchema = z.object({
   CLOUDINARY_CLOUD_NAME: z.string().optional(),
   CLOUDINARY_API_KEY: z.string().optional(),
   CLOUDINARY_API_SECRET: z.string().optional(),
+  // mock = free keyword stand-in while building pages, real = Gemini
+  AI_MODE: z.enum(['mock', 'real']).default('mock'),
   GEMINI_API_KEY: z.string().optional(),
   GEMINI_MODEL: z.string().default('gemini-3.8-flash'),
   GEMINI_FALLBACK_MODELS: z

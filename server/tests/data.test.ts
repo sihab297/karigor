@@ -52,6 +52,19 @@ describe('catalog data', () => {
     }
   });
 
+  it('gives every real job a short, unique quick pick', () => {
+    for (const service of services) {
+      const jobs = service.priceItems.filter((p) => p.skillId !== null);
+      const picks = jobs.map((p) => p.quickPick);
+
+      for (const [i, pick] of picks.entries()) {
+        expect(pick, jobs[i]!.id).toBeTruthy();
+        expect(pick!.length, jobs[i]!.id).toBeLessThanOrEqual(40);
+      }
+      expect(new Set(picks).size, service.id).toBe(picks.length);
+    }
+  });
+
   it('has safety tips for every emergency type', () => {
     for (const type of emergencyTypes) expect(type.tips.length, type.id).toBeGreaterThan(0);
   });

@@ -70,11 +70,11 @@ Keep the token and send it as `Authorization: Bearer <token>`. It lasts 7 days.
 
 ### Catalog
 
-| Method | Path                        | Who    | What it does                                                |
-| ------ | --------------------------- | ------ | ----------------------------------------------------------- |
-| GET    | `/services`                 | Public | Active services with their skills, A to Z (done)            |
-| GET    | `/areas`                    | Public | Dhaka areas with map positions, A to Z (done)               |
-| GET    | `/services/:id/quick-picks` | Public | Quick-pick buttons for the quick path (from the price list) |
+| Method | Path                        | Who    | What it does                                                                                                                          |
+| ------ | --------------------------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------- |
+| GET    | `/services`                 | Public | Active services with their skills, A to Z (done)                                                                                      |
+| GET    | `/areas`                    | Public | Dhaka areas with map positions, A to Z (done)                                                                                         |
+| GET    | `/services/:id/quick-picks` | Public | Quick-pick buttons for the quick path (done): `{ quickPicks: [{ priceItemId, label }] }`, e.g. "Fan not working", in price list order |
 
 ### Problems and AI
 

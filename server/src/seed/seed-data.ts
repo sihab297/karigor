@@ -243,7 +243,12 @@ export function catalogDocs() {
   return {
     services: services.map(({ id, name, nameBn, skills }) => ({ _id: id, name, nameBn, skills })),
     priceItems: services.flatMap((service) =>
-      service.priceItems.map(({ id, ...item }) => ({ _id: id, serviceId: service.id, ...item })),
+      service.priceItems.map(({ id, ...item }, position) => ({
+        _id: id,
+        serviceId: service.id,
+        position,
+        ...item,
+      })),
     ),
     safetyTips: safetyData.emergencyTypes.map(({ id, name, tips }) => ({ _id: id, name, tips })),
   };
