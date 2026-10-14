@@ -176,7 +176,7 @@ describe('staying logged in', () => {
 
     renderAt('/request');
 
-    expect(await screen.findByRole('heading', { name: 'Get help' })).toBeTruthy();
+    expect(await screen.findByRole('heading', { name: 'What needs fixing?' })).toBeTruthy();
   });
 
   it('forgets an expired login and sends the user to log in', async () => {
@@ -209,7 +209,7 @@ describe('staying logged in', () => {
 
     renderAt('/admin');
 
-    expect(await screen.findByRole('heading', { name: 'Get help' })).toBeTruthy();
+    expect(await screen.findByRole('heading', { name: 'What needs fixing?' })).toBeTruthy();
   });
 
   it('logs out', async () => {

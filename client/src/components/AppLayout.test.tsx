@@ -19,7 +19,7 @@ describe('menu for each role', () => {
     loggedInAs(testUsers.customer);
     renderAt('/request');
 
-    await screen.findByRole('heading', { name: 'Get help' });
+    await screen.findByRole('heading', { name: 'What needs fixing?' });
     expect(linkNames(mainNav())).toEqual(['Get help', 'My bookings']);
   });
 
@@ -120,7 +120,7 @@ describe('phone menu', () => {
     loggedInAs(testUsers.customer);
     const user = userEvent.setup();
     renderAt('/request');
-    await screen.findByRole('heading', { name: 'Get help' });
+    await screen.findByRole('heading', { name: 'What needs fixing?' });
 
     const button = screen.getByRole('button', { name: 'Open menu' });
     expect(button).toHaveAttribute('aria-expanded', 'false');
@@ -143,7 +143,7 @@ describe('phone menu', () => {
     loggedInAs(testUsers.customer);
     const user = userEvent.setup();
     renderAt('/request');
-    await screen.findByRole('heading', { name: 'Get help' });
+    await screen.findByRole('heading', { name: 'What needs fixing?' });
 
     await user.click(screen.getByRole('button', { name: 'Open menu' }));
     await user.keyboard('{Escape}');
@@ -156,7 +156,7 @@ describe('phone menu', () => {
     loggedInAs(testUsers.customer);
     const user = userEvent.setup();
     renderAt('/request');
-    await screen.findByRole('heading', { name: 'Get help' });
+    await screen.findByRole('heading', { name: 'What needs fixing?' });
 
     await user.click(screen.getByRole('button', { name: 'Open menu' }));
     const menu = document.getElementById('mobile-menu')!;

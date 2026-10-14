@@ -68,11 +68,19 @@ elsewhere: `StepCard` (numbered section that turns green when done), `ServicePic
 skill chips), `LocationPicker` (map with a draggable turmeric pin), `DayPicker` (Saturday to
 Friday), `NidUpload` (photo upload box with preview) and `StatusBanner`.
 
+Pieces for the customer's Get help flow, in `client/src/components/help/`: `StepBar` (step 1, 2
+or 3 of getting help), `PhotoPicker` (up to 3 photos with previews and remove buttons),
+`ServiceGrid` (choose one service, with its Bangla name), `QuickFields` (service, quick picks and
+one line) and `CheckingCard` (the waiting screen while the AI works). `ServiceIcon` in
+`components/` gives each service the same icon everywhere.
+
 ## Patterns
 
 - **Selected things** (services, skills, days) get a dark border and a turmeric fill, plus a
   tick, so they don't rely on color alone.
 - **Long forms** are split into numbered steps on one page, with a save bar fixed to the bottom.
+- **Waiting for the AI** replaces the form with what the customer sent and a moving turmeric
+  bar, so they know it is working and can't send twice.
 - **Maps** use OpenStreetMap through Leaflet, with the turmeric pin. Customers only ever see a
   technician's area name, never their exact pin.
 
