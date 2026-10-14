@@ -7,9 +7,10 @@ import {
   setFinalService,
   type Photo,
 } from '../services/problem.service';
+import { findMatches } from '../services/matching.service';
 import { AppError } from '../utils/app-error';
 import { detectImageType } from '../utils/image-type';
-import { analyzeSchema, finalServiceSchema } from '../validators/problem.validators';
+import { analyzeSchema, finalServiceSchema, matchSchema } from '../validators/problem.validators';
 
 // runs before the photos are read, so a customer over the limit doesn't upload anything
 export const limitChecks: RequestHandler = async (req, _res, next) => {
@@ -41,4 +42,9 @@ export const changeService: RequestHandler = async (req, res) => {
   const { finalServiceId } = finalServiceSchema.parse(req.body ?? {});
   const report = await setFinalService(String(req.params.id), req.user!, finalServiceId);
   res.json({ data: { report: reportView(report) } });
+};
+
+export const matches: RequestHandler = async (req, res) => {
+  const input = matchSchema.parse(req.body ?? {});
+  res.json({ data: await findMatches(String(req.params.id), req.user!, input) });
 };

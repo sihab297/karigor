@@ -1,9 +1,7 @@
 import { z } from 'zod';
+import { dhakaLocation } from './location';
 
 const TIME_REGEX = /^([01]\d|2[0-3]):[0-5]\d$/;
-
-// roughly the edges of Dhaka city
-export const DHAKA_BOUNDS = { minLat: 23.6, maxLat: 23.95, minLng: 90.3, maxLng: 90.55 };
 
 const time = z
   .string({ error: 'Time is required' })
@@ -22,22 +20,7 @@ export const profileSchema = z.object({
     .trim()
     .min(2, 'Area is required')
     .max(60, 'Area name is too long'),
-  location: z
-    .object(
-      {
-        lat: z.number({ error: 'Pick your location on the map' }),
-        lng: z.number({ error: 'Pick your location on the map' }),
-      },
-      { error: 'Pick your location on the map' },
-    )
-    .refine(
-      ({ lat, lng }) =>
-        lat >= DHAKA_BOUNDS.minLat &&
-        lat <= DHAKA_BOUNDS.maxLat &&
-        lng >= DHAKA_BOUNDS.minLng &&
-        lng <= DHAKA_BOUNDS.maxLng,
-      'Pick a location inside Dhaka',
-    ),
+  location: dhakaLocation('Pick your location on the map'),
   serviceRadiusKm: z.literal([5, 10, 15], { error: 'Choose 5, 10 or 15 km' }).default(10),
   workingDays: z
     .array(z.number().int().min(0).max(6), { error: 'Choose your working days' })
