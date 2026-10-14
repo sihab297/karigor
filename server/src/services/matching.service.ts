@@ -66,8 +66,9 @@ export async function findMatches(
     );
   }
 
-  // danger now: only people close by who can come straight away
-  const emergency = ai?.urgency === 'emergency';
+  // danger now: only people close by who can come straight away,
+  // unless the customer chose to book for later
+  const emergency = ai?.urgency === 'emergency' && !input.when;
   const when = emergency ? now : checkWhen(input.when, now);
   const maxKm = emergency ? EMERGENCY_MAX_KM : MAX_KM;
   // the AI's skills only fit the AI's own service

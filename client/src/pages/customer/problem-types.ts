@@ -42,3 +42,25 @@ export interface ProblemReport {
   finalServiceId?: string;
   createdAt: string;
 }
+
+export interface Match {
+  technicianId: string;
+  name: string;
+  areaName: string;
+  distanceKm: number;
+  rating: number | null;
+  ratingCount: number;
+  jobsDone: number;
+  experienceYears: number;
+  matchedSkills: { id: string; name: string }[];
+  bestMatch: boolean;
+}
+
+export interface MatchResult {
+  serviceId: string;
+  serviceName: string;
+  emergency: boolean;
+  when: string;
+  searchedKm: number;
+  matches: Match[];
+}

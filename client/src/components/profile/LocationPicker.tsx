@@ -29,7 +29,8 @@ function MoveOnClick({ onChange }: { onChange: (point: LatLng) => void }) {
 interface LocationPickerProps {
   value: LatLng | null;
   center: LatLng;
-  radiusKm: number;
+  // draws the travel circle; left out on the customer map
+  radiusKm?: number;
   onChange: (point: LatLng) => void;
 }
 
@@ -62,11 +63,13 @@ export function LocationPicker({ value, center, radiusKm, onChange }: LocationPi
               },
             }}
           />
-          <Circle
-            center={[value.lat, value.lng]}
-            radius={radiusKm * 1000}
-            pathOptions={{ color: '#2f6f62', weight: 1, fillOpacity: 0.06 }}
-          />
+          {radiusKm !== undefined && (
+            <Circle
+              center={[value.lat, value.lng]}
+              radius={radiusKm * 1000}
+              pathOptions={{ color: '#2f6f62', weight: 1, fillOpacity: 0.06 }}
+            />
+          )}
         </>
       )}
       <FollowPin position={position} />

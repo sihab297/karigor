@@ -21,7 +21,7 @@ export const finalServiceSchema = z.object({
 
 export type AnalyzeFields = z.infer<typeof analyzeSchema>;
 
-// "when" is ignored for emergencies: we look for people free right now
+// emergencies may leave out "when": then we look for people free right now
 export const matchSchema = z.object({
   location: dhakaLocation('Pin your home on the map'),
   when: z.iso

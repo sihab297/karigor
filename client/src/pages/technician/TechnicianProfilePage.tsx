@@ -10,17 +10,11 @@ import { StatusBanner } from '../../components/profile/StatusBanner';
 import { StepCard } from '../../components/profile/StepCard';
 import { api } from '../../lib/api';
 import { formErrorsFrom, noErrors, type FormErrors } from '../../lib/form-errors';
-import { DHAKA_CENTER, isInsideDhaka, nearestArea } from '../../lib/geo';
+import { DHAKA_CENTER, nearestArea } from '../../lib/geo';
+import { findMyLocation } from '../../lib/locate';
 import { formatTime, timeOptions } from '../../lib/time';
 import { useDocumentTitle } from '../../lib/use-document-title';
-import type {
-  Area,
-  LatLng,
-  ProfileForm,
-  Radius,
-  Service,
-  TechnicianProfile,
-} from './profile-types';
+import type { Area, ProfileForm, Radius, Service, TechnicianProfile } from './profile-types';
 
 function toggle<T>(list: T[], value: T) {
   return list.includes(value) ? list.filter((item) => item !== value) : [...list, value];
@@ -122,24 +116,13 @@ export default function TechnicianProfilePage() {
   }
 
   function useMyLocation() {
-    if (!('geolocation' in navigator)) {
-      setLocationNote("Your browser can't share your location. Drag the pin instead.");
-      return;
-    }
     setLocationNote('Finding you…');
-    navigator.geolocation.getCurrentPosition(
-      ({ coords }) => {
-        const point: LatLng = { lat: coords.latitude, lng: coords.longitude };
-        if (!isInsideDhaka(point)) {
-          setLocationNote('You seem to be outside Dhaka. Pick your area and drag the pin instead.');
-          return;
-        }
+    findMyLocation()
+      .then((point) => {
         change({ location: point, areaName: nearestArea(point, areas)?.name ?? form.areaName });
         setLocationNote('Found you. Drag the pin if it is not quite right.');
-      },
-      () => setLocationNote("We couldn't get your location. Drag the pin instead."),
-      { enableHighAccuracy: true, timeout: 10_000 },
-    );
+      })
+      .catch((error: Error) => setLocationNote(error.message));
   }
 
   async function toggleJobs(acceptingJobs: boolean) {

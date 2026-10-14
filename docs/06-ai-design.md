@@ -127,7 +127,8 @@ the AI again; it uses the saved AI result.
   (5, 10 or 15 km on their profile; 15 km still stops at 10 km, as the proposal says)
 - the chosen day is one of their working days and the time is inside their working hours, in
   Dhaka time (`utils/dhaka-time.ts`, UTC+6)
-- **Emergency:** within **5 km**, and the time is "right now"
+- **Emergency:** within **5 km**, and the time is "right now" (unless the customer chooses "Book
+  for later", which runs the normal search for that time)
 
 MongoDB's `$geoNear` (with the `2dsphere` index on `location`) finds the nearby ones and measures
 the distance in the same step.
