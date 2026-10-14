@@ -9,3 +9,9 @@ export class AppError extends Error {
     this.name = 'AppError';
   }
 }
+
+export function fieldError(field: string, message: string) {
+  return new AppError(400, 'VALIDATION_ERROR', 'Please check the highlighted fields.', [
+    { field, message },
+  ]);
+}
