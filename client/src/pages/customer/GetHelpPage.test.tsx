@@ -10,6 +10,7 @@ function asCustomer(routes: Parameters<typeof mockApi>[0] = {}) {
   return mockApi({
     'GET /auth/me': () => ({ body: { data: { user: testUsers.customer } } }),
     'POST /problems/analyze': () => ({ status: 201, body: { data: { report } } }),
+    'GET /problems/r1': () => ({ body: { data: { report } } }),
     'GET /services/electrician/quick-picks': () => ({
       body: {
         data: {

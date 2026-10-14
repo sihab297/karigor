@@ -34,6 +34,8 @@ export function AppLayout() {
 
   if (!user) return null;
   const links = menus[user.role];
+  // /request stays lit on /request/:id, but Dashboard (/admin) doesn't on /admin/technicians
+  const exactOnly = (to: string) => links.some((link) => link.to.startsWith(`${to}/`));
 
   function handleLogout() {
     setMenuOpen(false);
@@ -60,7 +62,7 @@ export function AppLayout() {
                 <li key={to}>
                   <NavLink
                     to={to}
-                    end
+                    end={exactOnly(to)}
                     className={({ isActive }) =>
                       `inline-flex h-10 items-center rounded-box px-3 font-semibold ${
                         isActive ? 'bg-turmeric-soft text-tea' : 'text-muted hover:text-tea'
@@ -116,7 +118,7 @@ export function AppLayout() {
                   <li key={to}>
                     <NavLink
                       to={to}
-                      end
+                      end={exactOnly(to)}
                       onClick={() => setMenuOpen(false)}
                       className={({ isActive }) =>
                         `flex h-12 items-center gap-3 rounded-box px-3 font-semibold ${

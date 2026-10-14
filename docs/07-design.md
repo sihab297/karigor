@@ -71,8 +71,12 @@ Friday), `NidUpload` (photo upload box with preview) and `StatusBanner`.
 Pieces for the customer's Get help flow, in `client/src/components/help/`: `StepBar` (step 1, 2
 or 3 of getting help), `PhotoPicker` (up to 3 photos with previews and remove buttons),
 `ServiceGrid` (choose one service, with its Bangla name), `QuickFields` (service, quick picks and
-one line) and `CheckingCard` (the waiting screen while the AI works). `ServiceIcon` in
-`components/` gives each service the same icon everywhere.
+one line) and `CheckingCard` (the waiting screen while the AI works). The result page adds
+`SafetyBox` (red emergency steps with a Call 999 button), `ResultCard` (service, urgency, how sure
+the AI is, summary), `PriceCard` (rough price with each line), `ServiceChoice` (pick a service and
+confirm) and `SentBlock` (what the customer wrote, with photos). `ServiceIcon` in `components/`
+gives each service the same icon everywhere, and `taka()` in `lib/money.ts` writes prices the
+Bangladeshi way (৳1,20,000).
 
 ## Patterns
 
@@ -81,6 +85,11 @@ one line) and `CheckingCard` (the waiting screen while the AI works). `ServiceIc
 - **Long forms** are split into numbered steps on one page, with a save bar fixed to the bottom.
 - **Waiting for the AI** replaces the form with what the customer sent and a moving turmeric
   bar, so they know it is working and can't send twice.
+- **How sure the AI is** is said in words with 3 dots ("We're sure", "We're fairly sure",
+  "We're not sure"), never as a percentage or "confidence: high".
+- **Prices** are always a range from our own price list, with "Parts are extra" next to them.
+  When the customer picks a different service than the AI, we show no price: the karigor tells
+  them after checking.
 - **Maps** use OpenStreetMap through Leaflet, with the turmeric pin. Customers only ever see a
   technician's area name, never their exact pin.
 
