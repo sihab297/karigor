@@ -209,6 +209,20 @@ describe('POST /api/v1/problems/:id/matches', () => {
     expect(names(res)).toEqual(['Close By']);
   });
 
+  it('does a normal search when an emergency is booked for later', async () => {
+    await makeTechnician('Seven Km Away', { km: 7 });
+    const id = await makeReport({ ai: aiResult({ urgency: 'emergency' }) });
+
+    const res = await findMatches(id, { location: home, when: SUNDAY_10AM });
+
+    expect(res.body.data).toMatchObject({
+      emergency: false,
+      searchedKm: 10,
+      when: '2026-10-18T04:00:00.000Z',
+    });
+    expect(names(res)).toEqual(['Seven Km Away']);
+  });
+
   it('uses the service the customer chose instead of the AI', async () => {
     await makeTechnician('Plumber Person', { km: 1 });
     await makeTechnician('Electric Person', {

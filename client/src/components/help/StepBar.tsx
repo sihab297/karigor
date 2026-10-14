@@ -1,7 +1,7 @@
 const steps = [
   { title: 'Tell us the problem', next: "Next you'll see the price, then choose a karigor." },
   { title: 'See the price', next: 'Next, choose a karigor.' },
-  { title: 'Choose a karigor', next: 'Then pick a time that suits you.' },
+  { title: 'Choose a karigor', next: 'Then send your booking request.' },
 ];
 
 export function StepBar({ step }: { step: 1 | 2 | 3 }) {

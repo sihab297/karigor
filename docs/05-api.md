@@ -118,7 +118,8 @@ measure how often the AI was right.
 ```
 
 - `location` must be inside Dhaka. `when` is any ISO date and time, from now up to 30 days ahead.
-- **Emergency** problems don't need `when`: the search is for people free right now, within 5 km.
+- **Emergency** problems may leave out `when`: then the search is for people free right now,
+  within 5 km. If the customer picks a time ("Book for later"), it is a normal search.
 - The service is the customer's choice (`finalServiceId`), else the AI's, else the quick path
   service. With none of these the answer is 409 `CHOOSE_SERVICE`.
 - How technicians are kept and ranked: see [06-ai-design.md](06-ai-design.md#smart-matching-top-3-technicians).

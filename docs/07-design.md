@@ -78,6 +78,12 @@ confirm) and `SentBlock` (what the customer wrote, with photos). `ServiceIcon` i
 gives each service the same icon everywhere, and `taka()` in `lib/money.ts` writes prices the
 Bangladeshi way (৳1,20,000).
 
+Smart Matching pieces live in `client/src/components/match/`: `MatchFinder` (the whole "Where and
+when?" part and the results), `HomePin` (area, "Use my location" and the map), `WhenPicker` (the
+next 7 days and hourly times), `TechnicianCard` (one of the top 3) and `BookDialog` (the booking
+summary pop-up). `lib/dhaka-time.ts` keeps every day and time in Dhaka time, and `findMyLocation()`
+in `lib/locate.ts` is shared with the technician profile.
+
 ## Patterns
 
 - **Selected things** (services, skills, days) get a dark border and a turmeric fill, plus a
@@ -92,6 +98,12 @@ Bangladeshi way (৳1,20,000).
   them after checking.
 - **Maps** use OpenStreetMap through Leaflet, with the turmeric pin. Customers only ever see a
   technician's area name, never their exact pin.
+- **Picking a time** uses buttons, not a calendar: the next 7 days ("Today", "Tomorrow", "Fri"),
+  then hours from 9 AM to 7 PM grouped as Morning, Afternoon and Evening. Times less than 30
+  minutes away are crossed out. Always Dhaka time, whatever the phone's time zone.
+- **The top 3** are cards with the facts behind each: distance, rating (or "New"), jobs on
+  Karigor, experience and the matching skill. The first has a turmeric border and "Best match";
+  its Book button is the main (turmeric) one, the others are outlined.
 
 ## Words
 

@@ -9,9 +9,11 @@ import { SafetyBox } from '../../components/help/SafetyBox';
 import { SentBlock } from '../../components/help/SentBlock';
 import { ServiceChoice } from '../../components/help/ServiceChoice';
 import { StepBar } from '../../components/help/StepBar';
+import { MatchFinder } from '../../components/match/MatchFinder';
 import { Modal } from '../../components/Modal';
 import { api, ApiError } from '../../lib/api';
 import { formErrorsFrom } from '../../lib/form-errors';
+import { takaRange } from '../../lib/money';
 import { useDocumentTitle } from '../../lib/use-document-title';
 import type { Service } from '../technician/profile-types';
 import type { ProblemReport } from './problem-types';
@@ -31,6 +33,7 @@ export default function ResultPage() {
   const [saveError, setSaveError] = useState('');
   const [changing, setChanging] = useState(false);
   const closeChange = useCallback(() => setChanging(false), []);
+  const [step, setStep] = useState<2 | 3>(2);
 
   useEffect(() => {
     let stillHere = true;
@@ -63,6 +66,7 @@ export default function ResultPage() {
       });
       setReport(data.report);
       setChanging(false);
+      setStep(2);
     } catch (error) {
       const found = formErrorsFrom(error);
       setSaveError(found.fields.finalServiceId ?? found.message);
@@ -126,6 +130,7 @@ export default function ResultPage() {
   const ownChoice = service !== null && service.id !== suggested;
   const mismatch =
     report.mode === 'quick' && ai?.understood && !ai.matchesChosenService && !report.finalServiceId;
+  const estimate = ownChoice ? null : (ai?.estimate ?? null);
   const unsure = ai && (!ai.understood || ai.confidence === 'low');
   const question = unsure && !report.finalServiceId ? ai.followUpQuestion : null;
 
@@ -141,7 +146,7 @@ export default function ResultPage() {
   return (
     <div className="mx-auto grid max-w-2xl gap-4">
       <h1 className="sr-only">Your result</h1>
-      <StepBar step={2} />
+      <StepBar step={step} />
 
       {ai?.urgency === 'emergency' && (
         <SafetyBox tips={ai.safetyTips} emergencyNumber={ai.emergencyNumber ?? '999'} />
@@ -190,17 +195,15 @@ export default function ResultPage() {
             }}
             onAddDetails={addDetails}
           />
-          <PriceCard
-            estimate={ownChoice ? null : (ai?.estimate ?? null)}
-            lines={ownChoice ? [] : (ai?.priceLines ?? [])}
+          <PriceCard estimate={estimate} lines={ownChoice ? [] : (ai?.priceLines ?? [])} />
+          <MatchFinder
+            reportId={report.id}
+            serviceId={service.id}
+            serviceName={service.name}
+            emergency={ai?.urgency === 'emergency'}
+            price={estimate ? takaRange(estimate.min, estimate.max) : null}
+            onShowMatches={(shown) => setStep(shown ? 3 : 2)}
           />
-          <section className="grid gap-1.5 rounded-box border border-dashed border-line px-4 py-4 text-muted sm:px-5">
-            <h2 className="text-xl font-bold text-tea">Where and when?</h2>
-            <p>
-              Next you'll pin your home on the map and pick a time. Then we show the 3 best karigors
-              near you. This part is still being built.
-            </p>
-          </section>
         </>
       ) : (
         <>
