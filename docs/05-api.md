@@ -83,7 +83,7 @@ Keep the token and send it as `Authorization: Bearer <token>`. It lasts 7 days.
 | POST   | `/problems/analyze`     | C    | Sends text (+ up to 3 photos, + chosen service on the quick path) to the AI and saves the result (done). Limit: 10 per hour per customer |
 | GET    | `/problems/:id`         | C, A | A saved problem with its AI result (done); only the customer who sent it, or the admin                                                   |
 | PATCH  | `/problems/:id`         | C    | The customer accepts or changes the service: `{ "finalServiceId": "plumber" }` (done)                                                    |
-| POST   | `/problems/:id/matches` | C    | Body: location and date/time. Returns the top 3 technicians with the facts behind each                                                   |
+| POST   | `/problems/:id/matches` | C    | Smart Matching (done): the top 3 technicians for this problem at the customer's pin and time, with the facts behind each                 |
 
 **Check a problem:** `POST /problems/analyze` as `multipart/form-data`:
 
@@ -110,6 +110,25 @@ Keep the token and send it as `Authorization: Bearer <token>`. It lasts 7 days.
 **Other people's problems** answer 404 `PROBLEM_NOT_FOUND`, the same as a problem that doesn't
 exist. `PATCH` only changes `finalServiceId`; the AI result stays as it was, so we can later
 measure how often the AI was right.
+
+**Find the top 3:** `POST /problems/:id/matches`
+
+```json
+{ "location": { "lat": 23.8223, "lng": 90.3654 }, "when": "2026-10-15T10:00:00+06:00" }
+```
+
+- `location` must be inside Dhaka. `when` is any ISO date and time, from now up to 30 days ahead.
+- **Emergency** problems don't need `when`: the search is for people free right now, within 5 km.
+- The service is the customer's choice (`finalServiceId`), else the AI's, else the quick path
+  service. With none of these the answer is 409 `CHOOSE_SERVICE`.
+- How technicians are kept and ranked: see [06-ai-design.md](06-ai-design.md#smart-matching-top-3-technicians).
+- Answers `{ serviceId, serviceName, emergency, when, searchedKm, matches }`. Each match:
+  `technicianId`, `name`, `areaName`, `distanceKm`, `rating` (`null` = new), `ratingCount`,
+  `jobsDone`, `experienceYears`, `matchedSkills` (`[{ id, name }]`) and `bestMatch` (first only).
+  The score is never sent, and neither is the technician's exact location or phone number.
+- `matches` is empty when nobody is free then; the page suggests another time.
+- Errors: `VALIDATION_ERROR` for `location` or `when` (400), `CHOOSE_SERVICE` (409),
+  `PROBLEM_NOT_FOUND` (404).
 
 ### Technicians
 

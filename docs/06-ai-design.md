@@ -112,3 +112,53 @@ uses about 22 of the daily free requests, so to check a change quickly, run just
 **Results (12 October 2026):** 21 of 22 cases answered, and **all 21 passed**: the right service
 every time, every emergency caught, and the quick-path mismatch detected. Case 19 (the trick
 attempt) could not run because the daily free limit was used up; run it again later.
+
+## Smart Matching (top 3 technicians)
+
+Code: `server/src/matching/score.ts` (the score) and `server/src/services/matching.service.ts`
+(the search). Endpoint: `POST /problems/:id/matches` (see [05-api.md](05-api.md)). It does not call
+the AI again; it uses the saved AI result.
+
+**1. Keep only suitable technicians.** A technician is kept only if all of these are true:
+
+- approved by the admin, "accepting jobs" is on, and their account is not blocked
+- offers the service (the customer's own choice if they changed it, otherwise the AI's)
+- within **10 km** of the customer's pin, and also within the distance they said they travel
+  (5, 10 or 15 km on their profile; 15 km still stops at 10 km, as the proposal says)
+- the chosen day is one of their working days and the time is inside their working hours, in
+  Dhaka time (`utils/dhaka-time.ts`, UTC+6)
+- **Emergency:** within **5 km**, and the time is "right now"
+
+MongoDB's `$geoNear` (with the `2dsphere` index on `location`) finds the nearby ones and measures
+the distance in the same step.
+
+**2. Give each one a score out of 100.** Each part is between 0 and 1, then weighted:
+
+| Part     | Weight | How it is worked out                                                   |
+| -------- | ------ | ---------------------------------------------------------------------- |
+| Skill    | 40     | Share of the skills the AI found that the technician has (all = 1)     |
+| Distance | 30     | 1 at the customer's door, 0 at the edge of the search (10 km, or 5 km) |
+| Rating   | 20     | Fair rating from 1 star (0) to 5 stars (1)                             |
+| Jobs     | 10     | Jobs of this service done on Karigor, up to 20 (20 or more = 1)        |
+
+- **The exact skill counts the most**, then distance (Dhaka traffic), rating and experience.
+- **Fair to new technicians:** the fair rating counts every technician as if they already had 3
+  reviews of 4 stars. A new technician starts at 4.0, and a few real reviews only move it a
+  little, so one bad or one great review can't decide everything.
+- If the customer changed the service, the AI's skills don't apply, so skill is 0.5 for everyone
+  and the other three parts decide.
+- Price is not part of the score: everyone follows the same price list.
+- Ties go to the nearer technician.
+
+**3. Show the top 3 with the facts.** The score itself is never sent. Each technician comes with
+distance (0.1 km), rating and number of reviews (`null` rating = new), jobs done for this
+service, years of experience and the matching skills. The first one is marked `bestMatch`. Only
+the technician's area name is shared, never their exact pin.
+
+Checked on 14 October 2026 with the seeded technicians: a tap leak in Mirpur (Thursday 10:00)
+gave Rahim Uddin (0.4 km, 4.6 stars, 18 jobs, tap repair skill) as best match; a fan problem on a
+Friday, or at 11 PM, gave nobody (everyone is off); a gas smell in Mirpur at Thursday 10:00 gave the
+gas fitter 0.5 km away.
+
+Bookings come in M5. When they do, a technician who already has a booking at that time will be
+left out too.

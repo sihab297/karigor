@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { dhakaLocation } from './location';
 
 const emptyToUndefined = (value: unknown) =>
   typeof value === 'string' && value.trim() === '' ? undefined : value;
@@ -19,3 +20,14 @@ export const finalServiceSchema = z.object({
 });
 
 export type AnalyzeFields = z.infer<typeof analyzeSchema>;
+
+// "when" is ignored for emergencies: we look for people free right now
+export const matchSchema = z.object({
+  location: dhakaLocation('Pin your home on the map'),
+  when: z.iso
+    .datetime({ offset: true, error: 'Choose a date and time' })
+    .transform((value) => new Date(value))
+    .optional(),
+});
+
+export type MatchInput = z.infer<typeof matchSchema>;
