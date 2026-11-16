@@ -22,3 +22,24 @@ export const createBookingSchema = z.object({
   note: z.string().trim().max(300, 'Keep the note under 300 characters').default(''),
 });
 export type CreateBookingInput = z.infer<typeof createBookingSchema>;
+
+export const changeStatusSchema = z.object({
+  status: z.enum(['accepted', 'rejected', 'cancelled', 'on_the_way', 'arrived', 'completed'], {
+    error: 'Choose what happened',
+  }),
+  // needed when the job is completed: what the customer paid in cash
+  finalPrice: z
+    .number({ error: 'Write the price as a number' })
+    .int('Write the price in whole taka')
+    .min(0, "The price can't be below 0")
+    .max(500_000, 'That price looks too high')
+    .optional(),
+  // needed when the customer cancels after the technician accepted
+  reason: z
+    .string()
+    .trim()
+    .min(5, 'Write a few words about why')
+    .max(300, 'Keep the reason under 300 characters')
+    .optional(),
+});
+export type ChangeStatusInput = z.infer<typeof changeStatusSchema>;
