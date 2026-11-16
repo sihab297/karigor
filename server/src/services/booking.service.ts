@@ -1,12 +1,37 @@
-import { BookingModel, BUSY_STATUSES, OPEN_STATUSES } from '../models/booking.model';
+import { isValidObjectId, type Types } from 'mongoose';
+import {
+  BookingModel,
+  BUSY_STATUSES,
+  OPEN_STATUSES,
+  type BookingStatus,
+} from '../models/booking.model';
+import { TechnicianProfileModel } from '../models/technician-profile.model';
 import type { UserDocument } from '../models/user.model';
-import { AppError } from '../utils/app-error';
-import type { CreateBookingInput } from '../validators/booking.validators';
+import { AppError, fieldError } from '../utils/app-error';
+import type { ChangeStatusInput, CreateBookingInput } from '../validators/booking.validators';
+import { STATUS_LABELS, whoCanChange, type BookingSide } from './booking-rules';
 import { findMatches } from './matching.service';
 import { findReport } from './problem.service';
 
 // a job keeps the technician busy for about this long on each side of its start time
 const SLOT_MS = 2 * 60 * 60 * 1000;
+
+// another job the technician said yes to, close to this time
+function findClashingJob(
+  technicianId: Types.ObjectId | string,
+  at: Date,
+  exceptId?: Types.ObjectId,
+) {
+  return BookingModel.exists({
+    technicianId,
+    status: { $in: BUSY_STATUSES },
+    scheduledAt: {
+      $gt: new Date(at.getTime() - SLOT_MS),
+      $lt: new Date(at.getTime() + SLOT_MS),
+    },
+    ...(exceptId ? { _id: { $ne: exceptId } } : {}),
+  });
+}
 
 export async function createBooking(
   customer: UserDocument,
@@ -44,15 +69,7 @@ export async function createBooking(
   }
 
   const scheduledAt = new Date(search.when);
-  const busy = await BookingModel.exists({
-    technicianId: match.technicianId,
-    status: { $in: BUSY_STATUSES },
-    scheduledAt: {
-      $gt: new Date(scheduledAt.getTime() - SLOT_MS),
-      $lt: new Date(scheduledAt.getTime() + SLOT_MS),
-    },
-  });
-  if (busy) {
+  if (await findClashingJob(match.technicianId, scheduledAt)) {
     throw new AppError(
       409,
       'TECHNICIAN_BUSY',
@@ -83,4 +100,94 @@ export async function createBooking(
     booking: booking.toJSON(),
     technician: { id: match.technicianId, name: match.name },
   };
+}
+
+// only the two people in a booking can see or change it
+async function findOwnBooking(id: string, user: UserDocument) {
+  const booking = isValidObjectId(id) ? await BookingModel.findById(id) : null;
+  let side: BookingSide | null = null;
+  if (booking?.customerId.equals(user._id)) side = 'customer';
+  else if (booking?.technicianId.equals(user._id)) side = 'technician';
+  if (!booking || !side) {
+    throw new AppError(404, 'BOOKING_NOT_FOUND', "We couldn't find this booking.");
+  }
+  return { booking, side };
+}
+
+export async function changeBookingStatus(
+  id: string,
+  user: UserDocument,
+  input: ChangeStatusInput,
+  now = new Date(),
+) {
+  const { booking, side } = await findOwnBooking(id, user);
+  const from = booking.status as BookingStatus;
+  const to = input.status;
+
+  const allowedSide = whoCanChange(from, to);
+  if (!allowedSide) {
+    throw new AppError(
+      409,
+      'STATUS_CHANGE_NOT_ALLOWED',
+      `This booking is ${STATUS_LABELS[from]}, so it can't be marked as ${STATUS_LABELS[to]}.`,
+    );
+  }
+  if (allowedSide !== side) {
+    throw new AppError(
+      403,
+      'NOT_ALLOWED',
+      `Only the ${allowedSide} can mark this booking as ${STATUS_LABELS[to]}.`,
+    );
+  }
+
+  const changes: Record<string, unknown> = { status: to };
+  if (to === 'completed') {
+    if (input.finalPrice === undefined) {
+      throw fieldError('finalPrice', 'Write the final price the customer paid');
+    }
+    changes.finalPrice = input.finalPrice;
+  }
+  if (to === 'cancelled') {
+    // once the technician has said yes, they deserve to know why
+    if (from === 'accepted' && !input.reason) {
+      throw fieldError('reason', 'Tell the karigor why you are cancelling');
+    }
+    if (input.reason) changes.cancelReason = input.reason;
+  }
+  if (
+    to === 'accepted' &&
+    (await findClashingJob(booking.technicianId, booking.scheduledAt, booking._id))
+  ) {
+    throw new AppError(
+      409,
+      'TECHNICIAN_BUSY',
+      'You already have a job at that time. Say no to this one, or finish the other first.',
+    );
+  }
+
+  // only update if nobody changed it in the meantime (for example, two taps at once)
+  const updated = await BookingModel.findOneAndUpdate(
+    { _id: booking._id, status: from },
+    {
+      $set: changes,
+      $push: { statusHistory: { status: to, at: now, byUserId: user._id } },
+    },
+    { new: true },
+  );
+  if (!updated) {
+    throw new AppError(
+      409,
+      'STATUS_CHANGED',
+      'This booking was just changed by someone else. Refresh to see the latest.',
+    );
+  }
+
+  if (to === 'completed') {
+    await TechnicianProfileModel.updateOne(
+      { userId: updated.technicianId },
+      { $inc: { [`jobsDone.${updated.serviceId}`]: 1 } },
+    );
+  }
+
+  return { booking: updated.toJSON() };
 }

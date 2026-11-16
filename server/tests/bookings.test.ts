@@ -252,3 +252,161 @@ describe('POST /api/v1/bookings', () => {
     expect(asTechnician.status).toBe(403);
   });
 });
+
+describe('PATCH /api/v1/bookings/:id/status', () => {
+  let rahim: TestUser;
+
+  // a booking saved straight into the database, in any status
+  async function makeBooking(status = 'requested', extra: object = {}) {
+    const problemId = await makeReport();
+    const booking = await new BookingModel({
+      customerId: customer.id,
+      technicianId: rahim.id,
+      problemReportId: problemId,
+      serviceId: 'plumber',
+      scheduledAt: new Date(SUNDAY_10AM),
+      location: { type: 'Point', coordinates: [home.lng, home.lat] },
+      addressText: 'House 12, Road 5, Flat 3B',
+      status,
+      statusHistory: [{ status: 'requested', at: NOW, byUserId: customer.id }],
+      ...extra,
+    }).save();
+    return booking.id as string;
+  }
+
+  const change = (id: string, body: object, token: string) =>
+    request(app)
+      .patch(`/api/v1/bookings/${id}/status`)
+      .set('Authorization', `Bearer ${token}`)
+      .send(body);
+
+  beforeEach(async () => {
+    rahim = await makeTechnician('Rahim Uddin');
+  });
+
+  it('follows the whole job from request to completed', async () => {
+    const id = await makeBooking();
+
+    for (const status of ['accepted', 'on_the_way', 'arrived']) {
+      const res = await change(id, { status }, rahim.token);
+      expect(res.status).toBe(200);
+      expect(res.body.data.booking.status).toBe(status);
+    }
+    const done = await change(id, { status: 'completed', finalPrice: 450 }, rahim.token);
+
+    expect(done.status).toBe(200);
+    const booking = done.body.data.booking;
+    expect(booking.status).toBe('completed');
+    expect(booking.finalPrice).toBe(450);
+    expect(booking.statusHistory.map((h: { status: string }) => h.status)).toEqual([
+      'requested',
+      'accepted',
+      'on_the_way',
+      'arrived',
+      'completed',
+    ]);
+    expect(booking.statusHistory[4].byUserId).toBe(rahim.id);
+    const profile = await TechnicianProfileModel.findOne({ userId: rahim.id });
+    expect(profile!.jobsDone.get('plumber')).toBe(11);
+  });
+
+  it('lets the technician say no', async () => {
+    const id = await makeBooking();
+
+    const res = await change(id, { status: 'rejected' }, rahim.token);
+
+    expect(res.status).toBe(200);
+    expect(res.body.data.booking.status).toBe('rejected');
+  });
+
+  it('refuses changes that skip steps or go backwards', async () => {
+    const requested = await makeBooking();
+    const skip = await change(requested, { status: 'arrived' }, rahim.token);
+    expect(skip.status).toBe(409);
+    expect(skip.body.error.code).toBe('STATUS_CHANGE_NOT_ALLOWED');
+
+    const completed = await makeBooking('completed');
+    const back = await change(
+      completed,
+      { status: 'cancelled', reason: 'Changed my mind' },
+      customer.token,
+    );
+    expect(back.status).toBe(409);
+
+    const saved = await BookingModel.findById(requested);
+    expect(saved!.status).toBe('requested');
+    expect(saved!.statusHistory).toHaveLength(1);
+  });
+
+  it('lets each side do only its own steps', async () => {
+    const id = await makeBooking();
+
+    const customerAccepts = await change(id, { status: 'accepted' }, customer.token);
+    expect(customerAccepts.status).toBe(403);
+    expect(customerAccepts.body.error.message).toBe(
+      'Only the technician can mark this booking as accepted.',
+    );
+
+    const technicianCancels = await change(id, { status: 'cancelled' }, rahim.token);
+    expect(technicianCancels.status).toBe(403);
+  });
+
+  it('needs the final price to complete a job', async () => {
+    const id = await makeBooking('arrived');
+
+    const res = await change(id, { status: 'completed' }, rahim.token);
+
+    expect(res.status).toBe(400);
+    expect(res.body.error.details[0].field).toBe('finalPrice');
+    const profile = await TechnicianProfileModel.findOne({ userId: rahim.id });
+    expect(profile!.jobsDone.get('plumber')).toBe(10);
+  });
+
+  it('lets the customer cancel, with a reason once it is accepted', async () => {
+    const requested = await makeBooking();
+    expect((await change(requested, { status: 'cancelled' }, customer.token)).status).toBe(200);
+
+    const accepted = await makeBooking('accepted');
+    const noReason = await change(accepted, { status: 'cancelled' }, customer.token);
+    expect(noReason.status).toBe(400);
+    expect(noReason.body.error.details[0].field).toBe('reason');
+
+    const withReason = await change(
+      accepted,
+      { status: 'cancelled', reason: 'The leak stopped by itself' },
+      customer.token,
+    );
+    expect(withReason.status).toBe(200);
+    expect(withReason.body.data.booking.cancelReason).toBe('The leak stopped by itself');
+
+    const onTheWay = await makeBooking('on_the_way');
+    const late = await change(
+      onTheWay,
+      { status: 'cancelled', reason: 'Too late now' },
+      customer.token,
+    );
+    expect(late.status).toBe(409);
+  });
+
+  it('stops a technician accepting two jobs at the same time', async () => {
+    await makeBooking('accepted', { scheduledAt: new Date('2026-10-18T11:00:00+06:00') });
+    const id = await makeBooking();
+
+    const res = await change(id, { status: 'accepted' }, rahim.token);
+
+    expect(res.status).toBe(409);
+    expect(res.body.error.code).toBe('TECHNICIAN_BUSY');
+  });
+
+  it('hides bookings from everyone else', async () => {
+    const id = await makeBooking();
+    const stranger = await makeUser('customer', 'Stranger');
+    const otherTechnician = await makeTechnician('Kamal Hossain', 2);
+
+    expect((await change(id, { status: 'cancelled' }, stranger.token)).status).toBe(404);
+    expect((await change(id, { status: 'accepted' }, otherTechnician.token)).status).toBe(404);
+    expect((await change('not-an-id', { status: 'accepted' }, rahim.token)).status).toBe(404);
+    const unknown = await change(id, { status: 'requested' }, rahim.token);
+    expect(unknown.status).toBe(400);
+  });
+});
