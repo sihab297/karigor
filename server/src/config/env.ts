@@ -11,8 +11,10 @@ const envSchema = z.object({
   CLOUDINARY_CLOUD_NAME: z.string().optional(),
   CLOUDINARY_API_KEY: z.string().optional(),
   CLOUDINARY_API_SECRET: z.string().optional(),
-  // mock = free keyword stand-in while building pages, real = Gemini
+  // mock = free keyword stand-in while building pages, real = Claude first, then Gemini
   AI_MODE: z.enum(['mock', 'real']).default('mock'),
+  ANTHROPIC_API_KEY: z.string().optional(),
+  CLAUDE_MODEL: z.string().default('claude-opus-5-5'),
   GEMINI_API_KEY: z.string().optional(),
   // protects the free AI quota
   AI_CHECKS_PER_HOUR: z.coerce.number().int().positive().default(10),

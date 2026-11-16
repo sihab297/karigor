@@ -14,7 +14,7 @@ SE331 Software Engineering Design Capstone Project.
 | Frontend | React, Vite, TypeScript, Tailwind CSS, React Router |
 | Backend  | Node.js, Express, TypeScript, Mongoose, Zod         |
 | Database | MongoDB Atlas                                       |
-| AI       | Google Gemini API (free tier)                       |
+| AI       | Anthropic Claude API (main), Google Gemini (backup) |
 | Quality  | ESLint, Prettier, Vitest, Supertest                 |
 
 ## Project structure
@@ -73,7 +73,7 @@ Run these from the `karigor` folder:
 | `npm run check`             | Format check + lint + typecheck + tests (run before every commit)                  |
 | `npm run build`             | Build the API and the website for production                                       |
 | `npm run seed -w server`    | Fill the database with the catalog, an admin and test accounts (safe to run again) |
-| `npm run test:ai -w server` | Try the AI on 22 real-looking problems (needs a Gemini key)                        |
+| `npm run test:ai -w server` | Try the AI on 22 real-looking problems (needs a Claude or Gemini key)              |
 
 ## Test accounts
 

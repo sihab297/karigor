@@ -10,7 +10,7 @@ export const confidenceSchema = z.enum(['high', 'medium', 'low']);
 export type Urgency = z.infer<typeof urgencySchema>;
 export type Confidence = z.infer<typeof confidenceSchema>;
 
-// sent to Gemini so it answers in this shape, then used to check the answer
+// sent to the AI so it answers in this shape, then used to check the answer
 export function buildAiOutputSchema(catalog: Catalog) {
   const serviceIds = catalog.services.map((s) => s.id);
   const emergencyIds = catalog.emergencyTypes.map((e) => e.id);

@@ -1,6 +1,6 @@
 import { isValidObjectId, type Types } from 'mongoose';
 import { findService } from '../ai/catalog';
-import type { AnalyzeOutcome } from '../ai/gemini';
+import type { AnalyzeOutcome } from '../ai/outcome';
 import { env } from '../config/env';
 import { ProblemReportModel, type ProblemReportDocument } from '../models/problem-report.model';
 import { ServiceModel } from '../models/service.model';

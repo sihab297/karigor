@@ -1,6 +1,6 @@
 import { buildAnalysis } from './analysis';
 import type { Catalog, PriceItem } from './catalog';
-import type { AnalyzeOutcome } from './gemini';
+import type { AnalyzeOutcome } from './outcome';
 import type { AnalyzeInput } from './prompt';
 import { NO_EMERGENCY, UNKNOWN_SERVICE, type AiOutput, type Urgency } from './schema';
 
