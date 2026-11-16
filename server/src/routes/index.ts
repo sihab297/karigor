@@ -5,6 +5,7 @@ import { technicianRouter } from './technician.routes';
 import { adminRouter } from './admin.routes';
 import { catalogRouter } from './catalog.routes';
 import { problemRouter } from './problem.routes';
+import { bookingRouter } from './booking.routes';
 
 export function createApiRouter() {
   const router = Router();
@@ -13,6 +14,7 @@ export function createApiRouter() {
   router.use('/auth', createAuthRouter());
   router.use(catalogRouter);
   router.use('/problems', problemRouter);
+  router.use('/bookings', bookingRouter);
   router.use('/technicians', technicianRouter);
   router.use('/admin', adminRouter);
 

@@ -41,6 +41,8 @@ export function MatchFinder({
   const [errors, setErrors] = useState<FormErrors>(noErrors);
   const [result, setResult] = useState<MatchResult | null>(null);
   const [booking, setBooking] = useState<Match | null>(null);
+  // the pin used for the search shown, so a booking matches what the customer saw
+  const [searchedPoint, setSearchedPoint] = useState<LatLng | null>(null);
   const closeBooking = useCallback(() => setBooking(null), []);
   const whenRef = useRef<HTMLDivElement>(null);
   const resultsRef = useRef<HTMLElement>(null);
@@ -94,6 +96,7 @@ export function MatchFinder({
         body: { location: point, ...(rightNow ? {} : { when: slotIso(slot!) }) },
       });
       setResult(data);
+      setSearchedPoint(point);
       onShowMatches(data.matches.length > 0);
     } catch (error) {
       setErrors(formErrorsFrom(error));
@@ -226,9 +229,12 @@ export function MatchFinder({
         </section>
       )}
 
-      {booking && shown && (
+      {booking && shown && searchedPoint && (
         <BookDialog
+          reportId={reportId}
           match={booking}
+          whenIso={shown.emergency ? undefined : shown.when}
+          location={searchedPoint}
           serviceName={serviceName}
           when={when}
           near={near}
