@@ -47,4 +47,7 @@ Any other change is refused by the server with an error. Every change is saved i
 - **Review:** only after `completed`, only by that customer, only once per booking.
 - **Technician stats:** when a booking is `completed`, the technician's `jobsDone` count for that
   service goes up by one. When a review is added, their average rating is updated.
-- **Double booking:** a technician cannot accept two bookings at the same time slot.
+- **Double booking:** a technician cannot accept two bookings at the same time slot. A job counts
+  as taking 2 hours on each side of its start time, so a new request is refused when the technician
+  already has an accepted job in that window. A customer can have only one open booking (requested
+  to arrived) for each problem; after a "no" they can book another of the top 3.

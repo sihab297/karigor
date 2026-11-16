@@ -73,6 +73,7 @@ const threeMatches = [
 function openResult(
   problem: ProblemReport,
   answer: (body: { when?: string }) => Partial<MatchResult> = () => ({}),
+  extra: Parameters<typeof mockApi>[0] = {},
 ) {
   localStorage.setItem('karigor.token', 'saved-token');
   return mockApi({
@@ -94,6 +95,7 @@ function openResult(
         },
       };
     },
+    ...extra,
   });
 }
 
@@ -187,7 +189,67 @@ describe('where and when, and the top 3', () => {
     expect(within(dialog).getByText('Your pin near Mirpur')).toBeInTheDocument();
     expect(within(dialog).getByText('৳400 – ৳800 + parts')).toBeInTheDocument();
     expect(within(dialog).getByLabelText('House, road and flat')).toBeInTheDocument();
-    expect(within(dialog).getByRole('button', { name: 'Send booking request' })).toBeDisabled();
+    expect(within(dialog).getByRole('button', { name: 'Send booking request' })).toBeEnabled();
+  });
+
+  it('sends the booking request and says it was sent', async () => {
+    const fetchMock = openResult(report, undefined, {
+      'POST /bookings': () => ({ status: 201, body: { data: { booking: { id: 'b1' } } } }),
+    });
+    const user = userEvent.setup();
+    renderAt('/request/r1');
+
+    await pinAndPickTomorrow(user);
+    await user.click(screen.getByRole('button', { name: 'Show the best karigors' }));
+    await user.click(await screen.findByRole('button', { name: 'Book Rahim' }));
+    const dialog = screen.getByRole('dialog', { name: 'Book Rahim Uddin?' });
+
+    await user.click(within(dialog).getByRole('button', { name: 'Send booking request' }));
+    expect(within(dialog).getByText('Write your house, road and flat')).toBeInTheDocument();
+
+    await user.type(within(dialog).getByLabelText('House, road and flat'), 'House 12, Road 5');
+    await user.type(within(dialog).getByLabelText(/Anything else/), 'Ring twice');
+    await user.click(within(dialog).getByRole('button', { name: 'Send booking request' }));
+
+    expect(await screen.findByRole('dialog', { name: 'Request sent' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'See my bookings' })).toHaveAttribute(
+      'href',
+      '/bookings',
+    );
+    const call = fetchMock.mock.calls.find(([url]) => String(url).endsWith('/bookings'));
+    expect(JSON.parse(call![1]!.body as string)).toEqual({
+      problemId: 'r1',
+      technicianId: 'Rahim Uddin',
+      location: { lat: 23.8223, lng: 90.3654 },
+      when: new Date(`${nextDays(new Date())[1]}T10:00:00+06:00`).toISOString(),
+      addressText: 'House 12, Road 5',
+      note: 'Ring twice',
+    });
+  });
+
+  it('shows why a booking could not be sent', async () => {
+    openResult(report, undefined, {
+      'POST /bookings': () => ({
+        status: 409,
+        body: {
+          error: {
+            code: 'TECHNICIAN_NOT_AVAILABLE',
+            message: 'This karigor is no longer free for that time and place. Choose another one.',
+          },
+        },
+      }),
+    });
+    const user = userEvent.setup();
+    renderAt('/request/r1');
+
+    await pinAndPickTomorrow(user);
+    await user.click(screen.getByRole('button', { name: 'Show the best karigors' }));
+    await user.click(await screen.findByRole('button', { name: 'Book Rahim' }));
+    const dialog = screen.getByRole('dialog', { name: 'Book Rahim Uddin?' });
+    await user.type(within(dialog).getByLabelText('House, road and flat'), 'House 12, Road 5');
+    await user.click(within(dialog).getByRole('button', { name: 'Send booking request' }));
+
+    expect(await within(dialog).findByText(/no longer free/)).toBeInTheDocument();
   });
 
   it('says so when nobody is free, and helps pick another time', async () => {

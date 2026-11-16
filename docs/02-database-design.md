@@ -145,8 +145,11 @@ AI limit.
 | `estimate`        | object                    | `{ min, max }` copied from the AI result                         |
 | `finalPrice`      | number                    | entered when the job is completed                                |
 | `cancelReason`    | string                    |                                                                  |
+| `emergency`       | boolean                   | booked for "right now" because of a danger at home               |
+| `note`            | string                    | optional note for the technician (gate, lift, landmark)          |
 
-Indexes: `{ technicianId, status }`, `{ customerId, createdAt }`, `{ technicianId, scheduledAt }`.
+Indexes: `{ technicianId, status }`, `{ customerId, createdAt }`, `{ technicianId, scheduledAt }`,
+`{ problemReportId }`.
 
 ### messages
 
