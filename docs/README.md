@@ -12,6 +12,14 @@ Read these before coding. They follow the approved proposal.
 | [06-ai-design.md](06-ai-design.md)             | How the AI check works, what it returns, and how to test it |
 | [07-design.md](07-design.md)                   | Colors, fonts, shapes, ready-made components and wording    |
 
+## Clickable prototype
+
+[prototype/index.html](prototype/index.html) shows all 15 pages (plus 8 important states such as
+an emergency, a booking pop-up and a reject reason) in web and mobile view. Open it in a browser:
+the list on the left jumps to any screen and the Desktop / Mobile switch changes the layout. Use
+it as the design for pages that are not built yet. Live copy:
+<https://sihab297.github.io/karigor-prototype/>
+
 ## Before-coding checklist
 
 ### Done
@@ -36,9 +44,10 @@ Read these before coding. They follow the approved proposal.
 - [ ] Check the **prices** with local technicians and the **safety tips** with Fire Service
       guidance (see [01-data-lists.md](01-data-lists.md)).
 
-### Later (before the first commit)
+### Project setup
 
-- [ ] Create the GitHub repository, push, and set up `main` and `dev` branches.
-- [ ] Add GitHub Actions to run `npm run check` on every push.
-- [ ] Create the GitHub Projects task board for M3–M9.
+- [x] GitHub repository with `main` and `dev` branches. Features go to `dev` through pull
+      requests.
+- [x] GitHub Actions runs `npm run check` and the build on every push and pull request.
+- [x] Issues grouped into milestones M3–M9 (used as the task board).
 - [ ] Vercel and Render accounts (only needed in December, for putting the site online).
