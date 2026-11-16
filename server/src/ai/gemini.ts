@@ -1,18 +1,12 @@
 import { ApiError, GoogleGenAI } from '@google/genai';
-import { buildAnalysis, type AnalysisResult } from './analysis';
+import { buildAnalysis } from './analysis';
 import { defaultCatalog, type Catalog } from './catalog';
+import type { AnalyzeOutcome } from './outcome';
 import { buildSystemInstruction, buildUserPrompt, type AnalyzeInput } from './prompt';
-import { buildAiOutputSchema, buildResponseJsonSchema, type AiOutput } from './schema';
+import { buildAiOutputSchema, buildResponseJsonSchema } from './schema';
 
 const AI_TIMEOUT_MS = 25_000;
 const RETRYABLE_STATUS = new Set([429, 500, 503, 504]);
-
-export interface AnalyzeOutcome {
-  result: AnalysisResult;
-  raw: AiOutput;
-  latencyMs: number;
-  model: string;
-}
 
 export function createGeminiClient(apiKey: string): GoogleGenAI {
   return new GoogleGenAI({

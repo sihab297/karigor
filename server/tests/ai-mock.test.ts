@@ -83,6 +83,7 @@ describe('mock AI', () => {
 
 describe('analyzeWithAi', () => {
   const settings = {
+    CLAUDE_MODEL: 'claude-opus-5-5',
     GEMINI_MODEL: 'gemini-3.8-flash',
     GEMINI_FALLBACK_MODELS: ['gemini-3.6-flash'],
   };

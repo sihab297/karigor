@@ -1,10 +1,14 @@
-// Runs the AI on the cases in ai-test-cases.json (needs GEMINI_API_KEY in .env)
-// npm run test:ai -w server, or only some cases: npm run test:ai -w server -- 4 15
+// Runs the AI on the cases in ai-test-cases.json.
+// Uses Claude when ANTHROPIC_API_KEY is in .env, otherwise Gemini (GEMINI_API_KEY).
+// npm run test:ai -w server, only some cases: npm run test:ai -w server -- 4 15
+// force Gemini: npm run test:ai -w server -- --gemini
 import { readFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { analyzeWithClaude, createClaudeClient } from '../src/ai/claude';
 import { analyzeProblem, createGeminiClient } from '../src/ai/gemini';
+import type { AnalyzeOutcome } from '../src/ai/outcome';
 import type { AnalyzeInput } from '../src/ai/prompt';
 
 interface TestCase {
@@ -22,7 +26,11 @@ interface TestCase {
 }
 
 const here = path.dirname(fileURLToPath(import.meta.url));
-const apiKey = process.env.GEMINI_API_KEY;
+const args = process.argv.slice(2);
+const claudeKey = process.env.ANTHROPIC_API_KEY;
+const geminiKey = process.env.GEMINI_API_KEY;
+const useClaude = Boolean(claudeKey) && !args.includes('--gemini');
+const claudeModel = process.env.CLAUDE_MODEL || 'claude-opus-5-5';
 const models = [
   process.env.GEMINI_MODEL || 'gemini-3.8-flash',
   ...(
@@ -32,7 +40,8 @@ const models = [
     .map((m) => m.trim())
     .filter(Boolean),
 ];
-const delayMs = Number(process.env.AI_TEST_DELAY_MS ?? 7000);
+// Gemini's free tier needs a pause between requests; Claude is paid per use
+const delayMs = Number(process.env.AI_TEST_DELAY_MS ?? (useClaude ? 1000 : 7000));
 
 const MIME_TYPES: Record<string, string> = {
   '.jpg': 'image/jpeg',
@@ -54,26 +63,41 @@ async function loadImages(names: string[] = []): Promise<AnalyzeInput['images'] 
   return images;
 }
 
-async function main() {
-  if (!apiKey) {
-    console.error('GEMINI_API_KEY is missing.');
-    console.error('1. Get a free key at https://aistudio.google.com/apikey');
-    console.error(
-      '2. Copy server/.env.example to server/.env and paste the key after GEMINI_API_KEY=',
-    );
+function pickAnalyzer(): { label: string; mainModel: string; analyze: Analyze } {
+  if (useClaude && claudeKey) {
+    const client = createClaudeClient(claudeKey);
+    return {
+      label: `Claude ${claudeModel}`,
+      mainModel: claudeModel,
+      analyze: (input) => analyzeWithClaude(client, claudeModel, input),
+    };
+  }
+  if (!geminiKey) {
+    console.error('No AI key found. Add ANTHROPIC_API_KEY (or GEMINI_API_KEY) to server/.env.');
+    console.error('Claude: https://console.anthropic.com > API Keys');
+    console.error('Gemini: https://aistudio.google.com/apikey');
     process.exit(1);
   }
+  const client = createGeminiClient(geminiKey);
+  return {
+    label: `Gemini ${models[0]} (backups: ${models.slice(1).join(', ')})`,
+    mainModel: models[0],
+    analyze: (input) => analyzeProblem(client, models, input),
+  };
+}
+
+type Analyze = (input: AnalyzeInput) => Promise<AnalyzeOutcome>;
+
+async function main() {
+  const { label, mainModel, analyze } = pickAnalyzer();
 
   const allCases: TestCase[] = JSON.parse(
     await readFile(path.join(here, 'ai-test-cases.json'), 'utf8'),
   );
-  const onlyIds = process.argv.slice(2).map(Number).filter(Boolean);
+  const onlyIds = args.map(Number).filter(Boolean);
   const cases = onlyIds.length ? allCases.filter((c) => onlyIds.includes(c.id)) : allCases;
 
-  const client = createGeminiClient(apiKey);
-  console.log(
-    `Model: ${models[0]} (backups: ${models.slice(1).join(', ')}) | ${cases.length} cases | ${delayMs / 1000}s wait between requests\n`,
-  );
+  console.log(`AI: ${label} | ${cases.length} cases | ${delayMs / 1000}s wait between requests\n`);
 
   let serviceOk = 0;
   let urgencyOk = 0;
@@ -92,7 +116,7 @@ async function main() {
     }
 
     try {
-      const { result, latencyMs, model } = await analyzeProblem(client, models, {
+      const { result, latencyMs, model } = await analyze({
         text: testCase.text,
         chosenServiceId: testCase.chosenServiceId,
         images,
@@ -132,7 +156,7 @@ async function main() {
       const status = problems.length === 0 ? 'PASS' : 'FAIL';
       const price = result.estimate ? ` | Tk ${result.estimate.min}-${result.estimate.max}` : '';
       console.log(
-        `${status} #${testCase.id} ${gotService} / ${result.urgency} (${result.confidence})${price} | ${(latencyMs / 1000).toFixed(1)}s${model === models[0] ? '' : ` | backup: ${model}`}`,
+        `${status} #${testCase.id} ${gotService} / ${result.urgency} (${result.confidence})${price} | ${(latencyMs / 1000).toFixed(1)}s${model === mainModel ? '' : ` | backup: ${model}`}`,
       );
       console.log(`     "${testCase.text}"`);
       console.log(`     -> ${result.summary}`);

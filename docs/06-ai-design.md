@@ -1,11 +1,23 @@
 # AI Design
 
-Code: `server/src/ai/`. Model: **Google Gemini** (free tier), set in `.env`:
+Code: `server/src/ai/`. Two AI providers, set in `server/.env`:
 
-- `GEMINI_MODEL` (main): `gemini-3.8-flash`
-- `GEMINI_FALLBACK_MODELS` (backups, in order): `gemini-3.6-flash,gemini-3.5-flash,gemini-3.5-flash-lite`, used
-  automatically when the model before is busy (error 429, 500, 503 or 504). Older models such as
-  `gemini-2.5-flash` are no longer available to new accounts.
+1. **Anthropic Claude (main)**, `claude.ts`
+   - `ANTHROPIC_API_KEY`: from <https://console.anthropic.com> (paid per use)
+   - `CLAUDE_MODEL`: `claude-opus-5-5`
+   - Answers in our exact JSON format (structured outputs) and reads the photos. Thinking is kept
+     light (`effort: low`) because choosing a service is a short task.
+2. **Google Gemini (backup)**, `gemini.ts`, used when Claude fails, declines to answer, or has no
+   key
+   - `GEMINI_API_KEY`: from <https://aistudio.google.com/apikey> (free tier)
+   - `GEMINI_MODEL` (main): `gemini-3.8-flash`
+   - `GEMINI_FALLBACK_MODELS` (backups, in order): `gemini-3.6-flash,gemini-3.5-flash,gemini-3.5-flash-lite`,
+     used automatically when the model before is busy (error 429, 500, 503 or 504). Older models such
+     as `gemini-2.5-flash` are no longer available to new accounts.
+
+`server/src/services/ai.service.ts` decides who answers: Claude if it has a key, then Gemini if
+Claude fails. With only one key, only that provider is used. With no key, the customer is asked to
+choose the service by hand.
 
 ## How one AI check works
 
@@ -17,8 +29,9 @@ Customer text + photos (+ chosen service on the quick path)
 2. Build the instructions with our catalog    (prompt.ts: buildSystemInstruction)
    - the 7 services, their skills and price-item names (no prices)
    - the emergency types
-3. ONE request to Gemini, asking for JSON     (gemini.ts: analyzeProblem)
+3. ONE request to Claude, asking for JSON     (claude.ts: analyzeWithClaude)
    in our exact format                        (schema.ts)
+   (if it fails: the same request to Gemini)  (gemini.ts: analyzeProblem)
         │
         ▼
 4. Check the answer against the format        (zod; a bad answer is rejected)
@@ -68,7 +81,7 @@ The full instructions are in `buildSystemInstruction()` in `server/src/ai/prompt
 | `AI_MODE` | What answers                                                                                                                  | Use it for                           |
 | --------- | ----------------------------------------------------------------------------------------------------------------------------- | ------------------------------------ |
 | `mock`    | `server/src/ai/mock.ts`: simple keyword rules in English, Banglish and Bangla. Free, instant, offline, same answer every time | Building and testing pages (default) |
-| `real`    | Google Gemini, with the backup models                                                                                         | Checking the AI, and the demo        |
+| `real`    | Claude, then Gemini (with its backup models) if Claude fails                                                                  | Checking the AI, and the demo        |
 
 Both answers go through the same `buildAnalysis()` step, so prices, safety tips and the
 quick-path check work exactly the same way. Quick picks (like "Fan not working") are matched
@@ -78,14 +91,17 @@ knows the words in its rules, so always try the real AI before a demo.
 ## Safety, privacy and limits
 
 - **Privacy:** only the problem text and photos are sent. Phone numbers and emails typed into
-  the text are removed first. On the free tier, Google may use what we send to improve its
+  the text are removed first. On Gemini's free tier, Google may use what we send to improve its
   products, which is another reason to send nothing personal.
-- **Free-tier limits:** the free tier allows only about **20 requests per day for each model**
+- **Cost:** Claude is paid per request. The limit of 10 checks per customer per hour
+  (`AI_CHECKS_PER_HOUR`) also keeps the bill small; keep `AI_MODE=mock` while building pages.
+- **Gemini free-tier limits:** the free tier allows only about **20 requests per day for each model**
   (checked October 2026; see <https://ai.dev/rate-limit>). With the main model and 3 backups that is
   about 80 AI checks a day. So: one request per problem, each user can do at most 10 checks per
   hour, and while building pages we use a **mock AI** (a fixed fake answer, added in M4) instead
   of real calls.
-- **If the main model is busy:** the same request goes to the next backup model straight away.
+- **If Claude fails** (timeout, error, refusal, bad answer): the same request goes to Gemini.
+- **If a Gemini model is busy:** the same request goes to the next backup model straight away.
 - **If all of them fail** (timeout, error, bad answer): the customer sees a clear message and can
   choose the service by hand.
 - **If the AI is not sure** (`confidence: low`): the customer is asked to add more details or a
@@ -96,9 +112,11 @@ knows the words in its rules, so always try the real AI before a demo.
 Two kinds of tests:
 
 1. **Automatic tests** (`npm test -w server`): check our own code around the AI (prices,
-   ignoring made-up ids, emergencies, privacy) without calling Gemini.
+   ignoring made-up ids, emergencies, privacy, and Claude-then-Gemini order) without calling any
+   real AI.
 2. **Real AI check** (`npm run test:ai -w server`): sends the 22 problems in
-   `server/scripts/ai-test-cases.json` to Gemini and reports how many it got right.
+   `server/scripts/ai-test-cases.json` to the AI and reports how many it got right. It uses Claude
+   when `ANTHROPIC_API_KEY` is set, otherwise Gemini; add `-- --gemini` to test Gemini on purpose.
    - The cases are in Bangla, Banglish and English, and include tricky ones: an AC leak (not a plumber
      job), water near a light switch (emergency), a "math homework" question (unknown), an
      attempt to trick the AI, and two quick-path cases.
@@ -106,10 +124,11 @@ Two kinds of tests:
    - **Target:** the right service in at least 90% of cases and every emergency caught.
 
 Run the real check again whenever you change the prompt, the catalog or the model. One full run
-uses about 22 of the daily free requests, so to check a change quickly, run just a few cases:
+is 22 paid Claude requests (or 22 of Gemini's daily free requests), so to check a change quickly,
+run just a few cases:
 `npm run test:ai -w server -- 4 15 21`.
 
-**Results (12 October 2026):** 21 of 22 cases answered, and **all 21 passed**: the right service
+**Results with Gemini (12 October 2026):** 21 of 22 cases answered, and **all 21 passed**: the right service
 every time, every emergency caught, and the quick-path mismatch detected. Case 19 (the trick
 attempt) could not run because the daily free limit was used up; run it again later.
 
