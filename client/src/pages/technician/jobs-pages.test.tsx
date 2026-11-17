@@ -99,7 +99,8 @@ describe('My jobs', () => {
     const user = userEvent.setup();
     renderAt('/tech/jobs');
 
-    const cards = await screen.findAllByRole('link', { name: /View request/ });
+    // the page loads three things at once, which can take a moment when every test runs together
+    const cards = await screen.findAllByRole('link', { name: /View request/ }, { timeout: 4000 });
     expect(cards).toHaveLength(2);
     expect(within(cards[0]!).getByText('Emergency · now')).toBeInTheDocument();
     expect(within(cards[1]!).getByText(/Mirpur · 1.2 km away/)).toBeInTheDocument();

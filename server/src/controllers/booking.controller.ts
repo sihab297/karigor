@@ -5,6 +5,7 @@ import {
   getBooking,
   listBookings,
 } from '../services/booking.service';
+import { listMessages } from '../services/message.service';
 import {
   changeStatusSchema,
   createBookingSchema,
@@ -28,4 +29,8 @@ export const getOne: RequestHandler = async (req, res) => {
 export const changeStatus: RequestHandler = async (req, res) => {
   const input = changeStatusSchema.parse(req.body ?? {});
   res.json({ data: await changeBookingStatus(String(req.params.id), req.user!, input) });
+};
+
+export const messages: RequestHandler = async (req, res) => {
+  res.json({ data: await listMessages(String(req.params.id), req.user!) });
 };

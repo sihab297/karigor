@@ -1,23 +1,33 @@
 import type { Server as HttpServer } from 'node:http';
 import { isValidObjectId } from 'mongoose';
 import { Server, type Socket } from 'socket.io';
+import { ZodError } from 'zod';
 import { env } from '../config/env';
 import { BookingModel } from '../models/booking.model';
 import { UserModel, type UserDocument } from '../models/user.model';
+import { sendMessage, type MessageView } from '../services/message.service';
+import { AppError } from '../utils/app-error';
+import { sendMessageSchema } from '../validators/message.validators';
 import { readToken } from '../utils/jwt';
 
 // what the server sends; see "Live events" in docs/05-api.md
 export interface ServerToClientEvents {
   'booking:status': (data: { bookingId: string; status: string }) => void;
   'booking:new': (data: { bookingId: string; serviceName: string; emergency: boolean }) => void;
+  'message:new': (message: MessageView) => void;
 }
 
 type JoinResult = { ok: true } | { ok: false; message: string };
+type SendResult = { ok: true; message: MessageView } | { ok: false; code: string; error: string };
 
 // what the website sends
 export interface ClientToServerEvents {
   'booking:join': (data: { bookingId: string }, reply: (result: JoinResult) => void) => void;
   'booking:leave': (data: { bookingId: string }) => void;
+  'message:send': (
+    data: { bookingId: string; text: string },
+    reply: (result: SendResult) => void,
+  ) => void;
 }
 
 interface SocketData {
@@ -60,6 +70,27 @@ async function joinBooking(socket: KarigorSocket, bookingId: unknown): Promise<J
   return { ok: true };
 }
 
+// save the message, then show it to everyone in the booking's room (the sender too)
+async function sendChatMessage(socket: KarigorSocket, data: unknown) {
+  const input = sendMessageSchema.parse(data ?? {});
+  const message = await sendMessage(socket.data.user, input);
+  io?.to(bookingRoom(message.bookingId)).emit('message:new', message);
+  return message;
+}
+
+function sendFailure(error: unknown): SendResult {
+  if (error instanceof ZodError) {
+    return {
+      ok: false,
+      code: 'VALIDATION_ERROR',
+      error: error.issues[0]?.message ?? 'Check the message.',
+    };
+  }
+  if (error instanceof AppError) return { ok: false, code: error.code, error: error.message };
+  console.error('Chat message failed:', error);
+  return { ok: false, code: 'SERVER_ERROR', error: 'The message was not sent. Please try again.' };
+}
+
 export function attachSocketServer(server: HttpServer): KarigorServer {
   io = new Server<ClientToServerEvents, ServerToClientEvents, object, SocketData>(server, {
     cors: { origin: env.CLIENT_URL },
@@ -78,6 +109,13 @@ export function attachSocketServer(server: HttpServer): KarigorServer {
         .catch(
           () => typeof reply === 'function' && reply({ ok: false, message: 'Please try again.' }),
         );
+    });
+
+    socket.on('message:send', (data, reply) => {
+      const answer = (result: SendResult) => typeof reply === 'function' && reply(result);
+      sendChatMessage(socket, data)
+        .then((message) => answer({ ok: true, message }))
+        .catch((error: unknown) => answer(sendFailure(error)));
     });
 
     socket.on('booking:leave', (data) => {

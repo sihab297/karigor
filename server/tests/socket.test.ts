@@ -145,3 +145,80 @@ describe('live connection', () => {
     expect(outsiderHeard).toBe(false);
   });
 });
+
+describe('chat', () => {
+  const send = (socket: Socket, bookingId: string, text: string) =>
+    socket.timeout(2000).emitWithAck('message:send', { bookingId, text }) as Promise<{
+      ok: boolean;
+      code?: string;
+      error?: string;
+      message?: { id: string; text: string; from: string };
+    }>;
+
+  const history = (bookingId: string, token: string) =>
+    request(app)
+      .get(`/api/v1/bookings/${bookingId}/messages`)
+      .set('Authorization', `Bearer ${token}`);
+
+  it('sends a message live to both people and saves it', async () => {
+    const bookingId = await makeBooking('accepted');
+    const customerSocket = await open(customer.token);
+    const technicianSocket = await open(technician.token);
+    await join(customerSocket, bookingId);
+    await join(technicianSocket, bookingId);
+
+    const arrives = nextEvent<{ text: string; from: string }>(technicianSocket, 'message:new');
+    const result = await send(customerSocket, bookingId, '  Gate is on the left  ');
+
+    expect(result).toMatchObject({
+      ok: true,
+      message: { text: 'Gate is on the left', from: 'customer' },
+    });
+    expect(await arrives).toMatchObject({ text: 'Gate is on the left', from: 'customer' });
+
+    await send(technicianSocket, bookingId, 'Coming in 15 minutes');
+    const res = await history(bookingId, technician.token);
+    expect(res.status).toBe(200);
+    expect(res.body.data.chatOpen).toBe(true);
+    expect(
+      res.body.data.messages.map((m: { text: string; from: string }) => [m.from, m.text]),
+    ).toEqual([
+      ['customer', 'Gate is on the left'],
+      ['technician', 'Coming in 15 minutes'],
+    ]);
+  });
+
+  it('opens the chat only from accepted until the job is done', async () => {
+    const socket = await open(customer.token);
+
+    const requested = await makeBooking('requested');
+    expect(await send(socket, requested, 'Hello?')).toMatchObject({
+      ok: false,
+      code: 'CHAT_CLOSED',
+    });
+
+    const completed = await makeBooking('completed');
+    expect(await send(socket, completed, 'Thanks!')).toMatchObject({
+      ok: false,
+      code: 'CHAT_CLOSED',
+    });
+    const res = await history(completed, customer.token);
+    expect(res.status).toBe(200);
+    expect(res.body.data.chatOpen).toBe(false);
+  });
+
+  it('refuses empty messages and other people', async () => {
+    const bookingId = await makeBooking('accepted');
+    const stranger = await makeUser('customer');
+
+    expect(await send(await open(customer.token), bookingId, '   ')).toMatchObject({
+      ok: false,
+      code: 'VALIDATION_ERROR',
+    });
+    expect(await send(await open(stranger.token), bookingId, 'Hi')).toMatchObject({
+      ok: false,
+      code: 'BOOKING_NOT_FOUND',
+    });
+    expect((await history(bookingId, stranger.token)).status).toBe(404);
+  });
+});
