@@ -50,6 +50,8 @@ function job(extra: Partial<Booking> = {}): Booking {
     customer: { id: 'c1', name: 'Nusrat J.', phone: null },
     statusHistory: [{ status: 'requested', at: '2026-10-17T04:00:00.000Z', by: 'customer' }],
     actions: ['accepted', 'rejected'],
+    review: null,
+    canReview: false,
     ...extra,
   };
 }

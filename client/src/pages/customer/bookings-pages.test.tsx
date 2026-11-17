@@ -30,6 +30,8 @@ function booking(extra: Partial<Booking> = {}): Booking {
     customer: { id: 'c1', name: 'Nusrat Jahan', phone: null },
     statusHistory: [{ status: 'requested', at: '2026-10-17T04:00:00.000Z', by: 'customer' }],
     actions: ['cancelled'],
+    review: null,
+    canReview: false,
     ...extra,
   };
 }
@@ -340,5 +342,96 @@ describe('Chat and live updates', () => {
 
     expect(await screen.findByText('The chat is closed for this booking.')).toBeInTheDocument();
     expect(input).toHaveValue('Hello');
+  });
+});
+
+describe('Review', () => {
+  const done = (extra: Partial<Booking> = {}) =>
+    booking({
+      status: 'completed',
+      finalPrice: 450,
+      actions: [],
+      canReview: true,
+      statusHistory: [
+        { status: 'requested', at: '2026-10-17T04:00:00.000Z', by: 'customer' },
+        { status: 'accepted', at: '2026-10-17T04:10:00.000Z', by: 'technician' },
+        { status: 'completed', at: '2026-10-18T05:00:00.000Z', by: 'technician' },
+      ],
+      ...extra,
+    });
+
+  it('rates the karigor after the job, once', async () => {
+    const fetchMock = signedIn({
+      'GET /bookings/b1': () => ({ body: { data: { booking: done() } } }),
+      'GET /bookings/b1/messages': () => ({ body: { data: { chatOpen: false, messages: [] } } }),
+      'POST /bookings/b1/review': () => ({
+        status: 201,
+        body: {
+          data: {
+            review: { rating: 4, comment: 'Fair price', at: '2026-10-18T06:00:00.000Z' },
+          },
+        },
+      }),
+    });
+    const user = userEvent.setup();
+    renderAt('/bookings/b1');
+
+    const form = await screen.findByRole('form', { name: 'Review Rahim' });
+    await user.click(within(form).getByRole('button', { name: 'Post review' }));
+    expect(within(form).getByText('Choose 1 to 5 stars')).toBeInTheDocument();
+
+    await user.click(within(form).getByRole('radio', { name: '4 stars: Good' }));
+    expect(within(form).getByRole('radio', { name: '4 stars: Good' })).toHaveAttribute(
+      'aria-checked',
+      'true',
+    );
+    await user.type(within(form).getByLabelText(/Anything to add/), 'Fair price');
+    await user.click(within(form).getByRole('button', { name: 'Post review' }));
+
+    const posted = await screen.findByRole('region', { name: 'Your review' });
+    expect(within(posted).getByRole('img', { name: '4 out of 5 stars' })).toBeInTheDocument();
+    expect(within(posted).getByText('“Fair price”')).toBeInTheDocument();
+    expect(screen.queryByRole('form', { name: 'Review Rahim' })).not.toBeInTheDocument();
+    const call = fetchMock.mock.calls.find(([url]) => String(url).endsWith('/review'));
+    expect(JSON.parse(call![1]!.body as string)).toEqual({ rating: 4, comment: 'Fair price' });
+  });
+
+  it('picks stars with the arrow keys', async () => {
+    signedIn({
+      'GET /bookings/b1': () => ({ body: { data: { booking: done() } } }),
+      'GET /bookings/b1/messages': () => ({ body: { data: { chatOpen: false, messages: [] } } }),
+    });
+    const user = userEvent.setup();
+    renderAt('/bookings/b1');
+
+    const first = await screen.findByRole('radio', { name: '1 star: Poor' });
+    first.focus();
+    // nothing is chosen at first, so three presses give three stars
+    await user.keyboard('{ArrowRight}{ArrowRight}{ArrowRight}');
+
+    const three = screen.getByRole('radio', { name: '3 stars: OK' });
+    expect(three).toHaveAttribute('aria-checked', 'true');
+    expect(three).toHaveFocus();
+  });
+
+  it('shows the review already given instead of the form', async () => {
+    signedIn({
+      'GET /bookings/b1': () => ({
+        body: {
+          data: {
+            booking: done({
+              canReview: false,
+              review: { rating: 5, comment: '', at: '2026-10-18T06:00:00.000Z' },
+            }),
+          },
+        },
+      }),
+      'GET /bookings/b1/messages': () => ({ body: { data: { chatOpen: false, messages: [] } } }),
+    });
+    renderAt('/bookings/b1');
+
+    const posted = await screen.findByRole('region', { name: 'Your review' });
+    expect(within(posted).getByRole('img', { name: '5 out of 5 stars' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Post review' })).not.toBeInTheDocument();
   });
 });

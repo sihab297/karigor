@@ -164,13 +164,17 @@ Index: `{ bookingId, createdAt }`.
 
 ### reviews
 
-| Field          | Type                | Notes                           |
-| -------------- | ------------------- | ------------------------------- |
-| `bookingId`    | ObjectId → bookings | unique (one review per booking) |
-| `customerId`   | ObjectId → users    |                                 |
-| `technicianId` | ObjectId → users    |                                 |
-| `rating`       | number              | 1 to 5                          |
-| `comment`      | string              | optional                        |
+| Field          | Type                | Notes                                        |
+| -------------- | ------------------- | -------------------------------------------- |
+| `bookingId`    | ObjectId → bookings | unique (one review per booking)              |
+| `customerId`   | ObjectId → users    |                                              |
+| `technicianId` | ObjectId → users    |                                              |
+| `serviceId`    | string              | the booking's service, shown with the review |
+| `rating`       | number              | 1 to 5                                       |
+| `comment`      | string              | optional, up to 500 characters               |
+| `createdAt`    | date                |                                              |
+
+Index: `{ technicianId, createdAt }` (newest reviews on a technician's profile).
 
 ## Design notes
 

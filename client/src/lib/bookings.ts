@@ -29,7 +29,18 @@ export interface Booking {
   statusHistory: { status: BookingStatus; at: string; by: 'customer' | 'technician' }[];
   // what the person looking can do next
   actions: BookingStatus[];
+  review: BookingReview | null;
+  // the customer can still review this finished job
+  canReview: boolean;
 }
+
+export interface BookingReview {
+  rating: number;
+  comment: string;
+  at: string;
+}
+
+export const RATING_WORDS = ['', 'Poor', 'Not good', 'OK', 'Good', 'Excellent'];
 
 export const OPEN_STATUSES: BookingStatus[] = ['requested', 'accepted', 'on_the_way', 'arrived'];
 

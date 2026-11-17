@@ -4,6 +4,7 @@ import { Link, useParams } from 'react-router';
 import { Alert } from '../../components/Alert';
 import { Button } from '../../components/Button';
 import { ChatBox } from '../../components/bookings/ChatBox';
+import { ReviewCard } from '../../components/bookings/ReviewCard';
 import { StatusTag } from '../../components/bookings/StatusTag';
 import { StatusTimeline } from '../../components/bookings/StatusTimeline';
 import { Modal } from '../../components/Modal';
@@ -305,6 +306,11 @@ export default function BookingDetailsPage() {
           )}
         </div>
       </div>
+
+      <ReviewCard
+        booking={booking}
+        onReviewed={(review) => setBooking({ ...booking, review, canReview: false })}
+      />
 
       <ChatBox booking={booking} viewer="customer" liveMessages={liveMessages} />
 
