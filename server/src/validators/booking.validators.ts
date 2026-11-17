@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { BOOKING_STATUSES } from '../models/booking.model';
 import { dhakaLocation } from './location';
 
 const ADDRESS_MESSAGE = 'Write your house, road and flat';
@@ -43,3 +44,12 @@ export const changeStatusSchema = z.object({
     .optional(),
 });
 export type ChangeStatusInput = z.infer<typeof changeStatusSchema>;
+
+// ?status=requested,accepted
+export const listBookingsSchema = z.object({
+  status: z
+    .string()
+    .optional()
+    .transform((value) => (value ? value.split(',').map((s) => s.trim()) : []))
+    .pipe(z.array(z.enum(BOOKING_STATUSES, { error: 'Unknown booking status' }))),
+});

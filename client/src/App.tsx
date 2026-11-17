@@ -6,6 +6,8 @@ import AdminTechniciansPage from './pages/admin/AdminTechniciansPage';
 import TechnicianProfilePage from './pages/technician/TechnicianProfilePage';
 import GetHelpPage from './pages/customer/GetHelpPage';
 import ResultPage from './pages/customer/ResultPage';
+import MyBookingsPage from './pages/customer/MyBookingsPage';
+import BookingDetailsPage from './pages/customer/BookingDetailsPage';
 import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
 import NotFoundPage from './pages/NotFoundPage';
@@ -22,15 +24,8 @@ export default function App() {
         <Route element={<AppLayout />}>
           <Route path="/request" element={<GetHelpPage />} />
           <Route path="/request/:id" element={<ResultPage />} />
-          <Route
-            path="/bookings"
-            element={
-              <ComingSoonPage
-                title="My bookings"
-                description="Your bookings and their status will show up here."
-              />
-            }
-          />
+          <Route path="/bookings" element={<MyBookingsPage />} />
+          <Route path="/bookings/:id" element={<BookingDetailsPage />} />
         </Route>
       </Route>
 

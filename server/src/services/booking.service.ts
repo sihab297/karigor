@@ -10,6 +10,7 @@ import type { UserDocument } from '../models/user.model';
 import { AppError, fieldError } from '../utils/app-error';
 import type { ChangeStatusInput, CreateBookingInput } from '../validators/booking.validators';
 import { STATUS_LABELS, whoCanChange, type BookingSide } from './booking-rules';
+import { buildBookingViews, type Viewer } from './booking-view';
 import { findMatches } from './matching.service';
 import { findReport } from './problem.service';
 
@@ -102,7 +103,7 @@ export async function createBooking(
   };
 }
 
-// only the two people in a booking can see or change it
+// only the two people in a booking can change it; the admin can also look
 async function findOwnBooking(id: string, user: UserDocument) {
   const booking = isValidObjectId(id) ? await BookingModel.findById(id) : null;
   let side: BookingSide | null = null;
@@ -172,7 +173,7 @@ export async function changeBookingStatus(
       $set: changes,
       $push: { statusHistory: { status: to, at: now, byUserId: user._id } },
     },
-    { new: true },
+    { returnDocument: 'after' },
   );
   if (!updated) {
     throw new AppError(
@@ -189,5 +190,32 @@ export async function changeBookingStatus(
     );
   }
 
-  return { booking: updated.toJSON() };
+  const [view] = await buildBookingViews([updated], () => side);
+  return { booking: view };
+}
+
+// customers see their bookings, technicians their jobs; newest first
+export async function listBookings(user: UserDocument, statuses?: BookingStatus[]) {
+  const side: BookingSide = user.role === 'technician' ? 'technician' : 'customer';
+  const bookings = await BookingModel.find({
+    [side === 'technician' ? 'technicianId' : 'customerId']: user._id,
+    ...(statuses?.length ? { status: { $in: statuses } } : {}),
+  })
+    .sort({ createdAt: -1 })
+    .limit(100);
+  return { bookings: await buildBookingViews(bookings, () => side) };
+}
+
+export async function getBooking(id: string, user: UserDocument) {
+  let viewer: Viewer;
+  let booking;
+  if (user.role === 'admin') {
+    booking = isValidObjectId(id) ? await BookingModel.findById(id) : null;
+    if (!booking) throw new AppError(404, 'BOOKING_NOT_FOUND', "We couldn't find this booking.");
+    viewer = 'admin';
+  } else {
+    ({ booking, side: viewer } = await findOwnBooking(id, user));
+  }
+  const [view] = await buildBookingViews([booking], () => viewer);
+  return { booking: view };
 }
