@@ -2,6 +2,7 @@ import { Route, Routes } from 'react-router';
 import { RequireRole } from './auth/RequireRole';
 import { AppLayout } from './components/AppLayout';
 import ComingSoonPage from './pages/ComingSoonPage';
+import AdminCatalogPage from './pages/admin/AdminCatalogPage';
 import AdminDashboardPage from './pages/admin/AdminDashboardPage';
 import AdminTechniciansPage from './pages/admin/AdminTechniciansPage';
 import TechnicianProfilePage from './pages/technician/TechnicianProfilePage';
@@ -46,15 +47,7 @@ export default function App() {
         <Route element={<AppLayout />}>
           <Route path="/admin" element={<AdminDashboardPage />} />
           <Route path="/admin/technicians" element={<AdminTechniciansPage />} />
-          <Route
-            path="/admin/catalog"
-            element={
-              <ComingSoonPage
-                title="Services and prices"
-                description="Edit skills, the price list and safety tips."
-              />
-            }
-          />
+          <Route path="/admin/catalog" element={<AdminCatalogPage />} />
           <Route
             path="/admin/bookings"
             element={
