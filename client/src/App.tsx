@@ -1,7 +1,7 @@
 import { Route, Routes } from 'react-router';
 import { RequireRole } from './auth/RequireRole';
 import { AppLayout } from './components/AppLayout';
-import ComingSoonPage from './pages/ComingSoonPage';
+import AdminBookingsPage from './pages/admin/AdminBookingsPage';
 import AdminCatalogPage from './pages/admin/AdminCatalogPage';
 import AdminDashboardPage from './pages/admin/AdminDashboardPage';
 import AdminTechniciansPage from './pages/admin/AdminTechniciansPage';
@@ -48,15 +48,7 @@ export default function App() {
           <Route path="/admin" element={<AdminDashboardPage />} />
           <Route path="/admin/technicians" element={<AdminTechniciansPage />} />
           <Route path="/admin/catalog" element={<AdminCatalogPage />} />
-          <Route
-            path="/admin/bookings"
-            element={
-              <ComingSoonPage
-                title="Bookings and users"
-                description="See all bookings and block or unblock users."
-              />
-            }
-          />
+          <Route path="/admin/bookings" element={<AdminBookingsPage />} />
         </Route>
       </Route>
 

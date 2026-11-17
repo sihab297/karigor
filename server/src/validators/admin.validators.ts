@@ -1,5 +1,7 @@
 import { z } from 'zod';
+import { BOOKING_STATUSES } from '../models/booking.model';
 import { APPROVAL_STATUSES } from '../models/technician-profile.model';
+import { USER_ROLES, USER_STATUSES } from '../models/user.model';
 
 export const technicianListQuery = z.object({
   status: z
@@ -24,3 +26,31 @@ export const approvalSchema = z.discriminatedUnion(
 );
 
 export type ApprovalInput = z.infer<typeof approvalSchema>;
+
+const page = z.coerce.number().int().min(1).default(1);
+const search = z.string().trim().max(60).optional();
+
+// ?status=accepted,on_the_way&q=rahim&page=2
+export const adminBookingsQuery = z.object({
+  status: z
+    .string()
+    .optional()
+    .transform((value) => (value ? value.split(',').map((s) => s.trim()) : []))
+    .pipe(z.array(z.enum(BOOKING_STATUSES, { error: 'Unknown booking status' }))),
+  q: search,
+  page,
+});
+
+export const adminUsersQuery = z.object({
+  role: z.enum(USER_ROLES).optional(),
+  status: z.enum(USER_STATUSES).optional(),
+  q: search,
+  page,
+});
+
+export const userStatusSchema = z.object({
+  status: z.enum(USER_STATUSES, { error: 'Choose active or blocked' }),
+});
+
+export type AdminBookingsQuery = z.infer<typeof adminBookingsQuery>;
+export type AdminUsersQuery = z.infer<typeof adminUsersQuery>;
