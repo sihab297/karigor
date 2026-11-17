@@ -75,7 +75,8 @@ export function MatchFinder({
 
   function showPicker() {
     whenRef.current?.scrollIntoView?.({ behavior: 'smooth', block: 'center' });
-    whenRef.current?.querySelector('button')?.focus();
+    // late in the evening "Today" is closed, so go to the first day that can be picked
+    whenRef.current?.querySelector<HTMLButtonElement>('button:not(:disabled)')?.focus();
   }
 
   async function handleFind(event: FormEvent) {
