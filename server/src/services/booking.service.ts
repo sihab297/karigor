@@ -111,7 +111,7 @@ export async function createBooking(
 }
 
 // only the two people in a booking can change it; the admin can also look
-async function findOwnBooking(id: string, user: UserDocument) {
+export async function findOwnBooking(id: string, user: UserDocument) {
   const booking = isValidObjectId(id) ? await BookingModel.findById(id) : null;
   let side: BookingSide | null = null;
   if (booking?.customerId.equals(user._id)) side = 'customer';
