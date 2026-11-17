@@ -63,6 +63,22 @@ describe('GET /services', () => {
     });
   });
 
+  it('gives each service its lowest active price as the starting price', async () => {
+    const plumberPrices = await PriceItemModel.find({ serviceId: 'plumber', active: true });
+    const lowest = Math.min(...plumberPrices.map((p) => p.minPrice));
+
+    const res = await request(app).get('/api/v1/services');
+
+    const plumber = res.body.data.services.find((s: { id: string }) => s.id === 'plumber');
+    expect(plumber.startingPrice).toBe(lowest);
+
+    const cheapest = plumberPrices.find((p) => p.minPrice === lowest)!;
+    await PriceItemModel.updateMany({ serviceId: 'plumber', minPrice: lowest }, { active: false });
+    const after = await request(app).get('/api/v1/services');
+    const changed = after.body.data.services.find((s: { id: string }) => s.id === 'plumber');
+    expect(changed.startingPrice).toBeGreaterThan(cheapest.minPrice);
+  });
+
   it('hides services the admin switched off', async () => {
     await ServiceModel.updateOne({ _id: 'cleaner' }, { active: false });
     const res = await request(app).get('/api/v1/services');

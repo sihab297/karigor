@@ -8,6 +8,8 @@ export interface Service {
   name: string;
   nameBn: string;
   skills: Skill[];
+  // lowest price in the price list, for the home page
+  startingPrice?: number | null;
 }
 
 export interface Area {

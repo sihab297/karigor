@@ -5,8 +5,20 @@ import { SafetyTipModel } from '../models/safety-tip.model';
 import { ServiceModel } from '../models/service.model';
 import { AppError } from '../utils/app-error';
 
-export function listServices() {
-  return ServiceModel.find({ active: true }).sort({ name: 1 });
+// each service with its lowest price, for "from ৳200" on the home page
+export async function listServices() {
+  const [services, prices] = await Promise.all([
+    ServiceModel.find({ active: true }).sort({ name: 1 }),
+    PriceItemModel.aggregate<{ _id: string; startingPrice: number }>([
+      { $match: { active: true } },
+      { $group: { _id: '$serviceId', startingPrice: { $min: '$minPrice' } } },
+    ]),
+  ]);
+  const startingPrice = new Map(prices.map((p) => [p._id, p.startingPrice]));
+  return services.map((service) => ({
+    ...service.toJSON(),
+    startingPrice: startingPrice.get(service.id as string) ?? null,
+  }));
 }
 
 export function listAreas() {
