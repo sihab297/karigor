@@ -1,6 +1,9 @@
 import { Router } from 'express';
 import {
+  getBookings,
   getStats,
+  getUsers,
+  setUserStatusHandler,
   getTechnicianNid,
   getTechnicians,
   setTechnicianApproval,
@@ -38,3 +41,8 @@ adminRouter.post('/price-items', postPriceItem);
 adminRouter.patch('/price-items/:id', patchPriceItem);
 adminRouter.delete('/price-items/:id', deletePriceItem);
 adminRouter.patch('/safety-tips/:id', patchSafetyTip);
+
+// all bookings, and blocking or unblocking users
+adminRouter.get('/bookings', getBookings);
+adminRouter.get('/users', getUsers);
+adminRouter.patch('/users/:id/status', setUserStatusHandler);

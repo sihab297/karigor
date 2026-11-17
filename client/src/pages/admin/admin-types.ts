@@ -54,3 +54,20 @@ export interface AdminCatalog {
   priceItems: AdminPriceItem[];
   safetyTips: AdminSafetyTip[];
 }
+
+export interface AdminUser {
+  id: string;
+  name: string;
+  phone: string;
+  email: string | null;
+  role: 'customer' | 'technician' | 'admin';
+  status: 'active' | 'blocked';
+  joinedAt: string;
+  bookings: number;
+}
+
+export interface Paged {
+  total: number;
+  page: number;
+  pageSize: number;
+}

@@ -142,3 +142,8 @@ export function emitNewBooking(
 ) {
   io?.to(userRoom(technicianId)).emit('booking:new', data);
 }
+
+// a blocked user is logged out of every open live connection straight away
+export function disconnectUser(userId: string) {
+  io?.in(userRoom(userId)).disconnectSockets(true);
+}
