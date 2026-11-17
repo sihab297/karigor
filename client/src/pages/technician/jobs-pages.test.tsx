@@ -2,6 +2,7 @@ import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
 import type { Booking } from '../../lib/bookings';
+import { fakeLive } from '../../test/fake-live';
 import { mockApi, renderAt, testUsers } from '../../test/helpers';
 import type { TechnicianProfile } from './profile-types';
 
@@ -229,5 +230,62 @@ describe('Job details', () => {
       status: 'completed',
       finalPrice: 450,
     });
+  });
+});
+
+describe('Job chat', () => {
+  it('lets the technician chat once the job is accepted', async () => {
+    signedIn({
+      'GET /bookings/b1': () => ({
+        body: {
+          data: {
+            booking: job({
+              status: 'accepted',
+              addressText: 'House 12, Road 5, Flat 3B',
+              customer: { id: 'c1', name: 'Nusrat Jahan', phone: '01812345678' },
+              actions: ['on_the_way'],
+              statusHistory: [
+                { status: 'requested', at: '2026-10-17T04:00:00.000Z', by: 'customer' },
+                { status: 'accepted', at: '2026-10-17T04:10:00.000Z', by: 'technician' },
+              ],
+            }),
+          },
+        },
+      }),
+      'GET /bookings/b1/messages': () => ({
+        body: {
+          data: {
+            chatOpen: true,
+            messages: [
+              {
+                id: 'm1',
+                bookingId: 'b1',
+                text: 'Ring twice',
+                at: '2026-10-17T04:12:00.000Z',
+                from: 'customer',
+              },
+            ],
+          },
+        },
+      }),
+    });
+    fakeLive.answerSend = (data) => ({
+      ok: true,
+      message: {
+        id: 'm2',
+        bookingId: data.bookingId,
+        text: data.text,
+        at: '2026-10-17T04:13:00.000Z',
+        from: 'technician',
+      },
+    });
+    const user = userEvent.setup();
+    renderAt('/tech/jobs/b1');
+
+    const chat = await screen.findByRole('region', { name: 'Chat with Nusrat' });
+    expect(await within(chat).findByText('Ring twice')).toBeInTheDocument();
+    await user.type(within(chat).getByLabelText('Message to Nusrat'), 'On my way');
+    await user.click(within(chat).getByRole('button', { name: 'Send' }));
+    expect(await within(chat).findByText('On my way')).toBeInTheDocument();
   });
 });

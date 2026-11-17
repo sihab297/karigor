@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import { Link, useParams } from 'react-router';
 import { Alert } from '../../components/Alert';
 import { Button } from '../../components/Button';
+import { ChatBox } from '../../components/bookings/ChatBox';
 import { StatusTag } from '../../components/bookings/StatusTag';
 import { StatusTimeline } from '../../components/bookings/StatusTimeline';
 import { Modal } from '../../components/Modal';
@@ -10,6 +11,7 @@ import { TextField } from '../../components/TextField';
 import { api, ApiError } from '../../lib/api';
 import { dhakaDateTime, type Booking, type BookingStatus } from '../../lib/bookings';
 import { formErrorsFrom, noErrors, type FormErrors } from '../../lib/form-errors';
+import { useBookingLive, type ChatMessage } from '../../lib/live';
 import { taka, takaRange } from '../../lib/money';
 import { firstName } from '../../lib/names';
 import { useDocumentTitle } from '../../lib/use-document-title';
@@ -50,6 +52,17 @@ export default function JobDetailsPage() {
       stillHere = false;
     };
   }, [id, attempt]);
+
+  // a cancel by the customer and chat messages arrive without refreshing the page
+  const [liveMessages, setLiveMessages] = useState<ChatMessage[]>([]);
+  useBookingLive(id, {
+    onStatus: () => {
+      api<{ booking: Booking }>(`/bookings/${id}`)
+        .then((data) => setJob(data.booking))
+        .catch(() => undefined);
+    },
+    onMessage: (message) => setLiveMessages((list) => [...list, message]),
+  });
 
   async function moveTo(status: BookingStatus, extra: object = {}) {
     setSaving(status);
@@ -270,6 +283,8 @@ export default function JobDetailsPage() {
           </section>
         </div>
       </div>
+
+      <ChatBox booking={job} viewer="technician" liveMessages={liveMessages} />
 
       {confirmReject && (
         <Modal

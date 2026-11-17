@@ -1,7 +1,8 @@
-import { screen, within } from '@testing-library/react';
+import { act, cleanup, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
 import type { Booking } from '../../lib/bookings';
+import { fakeLive } from '../../test/fake-live';
 import { mockApi, renderAt, testUsers } from '../../test/helpers';
 
 function booking(extra: Partial<Booking> = {}): Booking {
@@ -197,5 +198,147 @@ describe('Booking details', () => {
     expect(
       await screen.findByRole('heading', { name: "We couldn't find this booking" }),
     ).toBeInTheDocument();
+  });
+});
+
+describe('Chat and live updates', () => {
+  it('chats with the karigor and shows status changes without refreshing', async () => {
+    let calls = 0;
+    signedIn({
+      'GET /bookings/b1': () => {
+        calls += 1;
+        return {
+          body: {
+            data: {
+              booking: booking({
+                status: calls === 1 ? 'accepted' : 'on_the_way',
+                actions: calls === 1 ? ['cancelled'] : [],
+                technician: {
+                  id: 't1',
+                  name: 'Rahim Uddin',
+                  phone: '01700000001',
+                  rating: 4.6,
+                  ratingCount: 14,
+                },
+                statusHistory: [
+                  { status: 'requested', at: '2026-10-17T04:00:00.000Z', by: 'customer' },
+                  { status: 'accepted', at: '2026-10-17T04:10:00.000Z', by: 'technician' },
+                ],
+              }),
+            },
+          },
+        };
+      },
+      'GET /bookings/b1/messages': () => ({
+        body: {
+          data: {
+            chatOpen: true,
+            messages: [
+              {
+                id: 'm1',
+                bookingId: 'b1',
+                text: 'Coming at 10',
+                at: '2026-10-17T04:11:00.000Z',
+                from: 'technician',
+              },
+            ],
+          },
+        },
+      }),
+    });
+    const user = userEvent.setup();
+    renderAt('/bookings/b1');
+
+    const chat = await screen.findByRole('region', { name: 'Chat with Rahim' });
+    expect(await within(chat).findByText('Coming at 10')).toBeInTheDocument();
+    expect(fakeLive.sent).toContainEqual({ event: 'booking:join', data: { bookingId: 'b1' } });
+
+    await user.type(within(chat).getByLabelText('Message to Rahim'), 'Gate is on the left');
+    await user.click(within(chat).getByRole('button', { name: 'Send' }));
+    expect(await within(chat).findByText('Gate is on the left')).toBeInTheDocument();
+    expect(fakeLive.sent).toContainEqual({
+      event: 'message:send',
+      data: { bookingId: 'b1', text: 'Gate is on the left' },
+    });
+    expect(within(chat).getByLabelText('Message to Rahim')).toHaveValue('');
+
+    act(() =>
+      fakeLive.serverSends('message:new', {
+        id: 'm9',
+        bookingId: 'b1',
+        text: 'Almost there',
+        at: '2026-10-17T05:00:00.000Z',
+        from: 'technician',
+      }),
+    );
+    expect(await within(chat).findByText('Almost there')).toBeInTheDocument();
+
+    act(() => fakeLive.serverSends('booking:status', { bookingId: 'b1', status: 'on_the_way' }));
+    expect(await screen.findByText(/can't be cancelled here/)).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Cancel booking' })).not.toBeInTheDocument();
+  });
+
+  it('says when the chat opens, and keeps it read-only after the job', async () => {
+    signedIn({ 'GET /bookings/b1': () => ({ body: { data: { booking: booking() } } }) });
+    renderAt('/bookings/b1');
+    expect(await screen.findByText('The chat opens when Rahim accepts.')).toBeInTheDocument();
+    cleanup();
+
+    signedIn({
+      'GET /bookings/b2': () => ({
+        body: {
+          data: {
+            booking: booking({
+              id: 'b2',
+              status: 'completed',
+              finalPrice: 450,
+              actions: [],
+              statusHistory: [
+                { status: 'requested', at: '2026-10-17T04:00:00.000Z', by: 'customer' },
+                { status: 'accepted', at: '2026-10-17T04:10:00.000Z', by: 'technician' },
+                { status: 'completed', at: '2026-10-18T05:00:00.000Z', by: 'technician' },
+              ],
+            }),
+          },
+        },
+      }),
+      'GET /bookings/b2/messages': () => ({ body: { data: { chatOpen: false, messages: [] } } }),
+    });
+    renderAt('/bookings/b2');
+    expect(await screen.findByText(/The chat is closed for this booking/)).toBeInTheDocument();
+    expect(screen.queryByLabelText('Message to Rahim')).not.toBeInTheDocument();
+  });
+
+  it('shows why a message was not sent', async () => {
+    signedIn({
+      'GET /bookings/b1': () => ({
+        body: {
+          data: {
+            booking: booking({
+              status: 'accepted',
+              statusHistory: [
+                { status: 'requested', at: '2026-10-17T04:00:00.000Z', by: 'customer' },
+                { status: 'accepted', at: '2026-10-17T04:10:00.000Z', by: 'technician' },
+              ],
+            }),
+          },
+        },
+      }),
+      'GET /bookings/b1/messages': () => ({ body: { data: { chatOpen: true, messages: [] } } }),
+    });
+    fakeLive.answerSend = () => ({
+      ok: false,
+      code: 'CHAT_CLOSED',
+      error: 'The chat is closed for this booking.',
+    });
+    const user = userEvent.setup();
+    renderAt('/bookings/b1');
+
+    const input = await screen.findByLabelText('Message to Rahim');
+    await user.type(input, 'Hello');
+    await user.click(screen.getByRole('button', { name: 'Send' }));
+
+    expect(await screen.findByText('The chat is closed for this booking.')).toBeInTheDocument();
+    expect(input).toHaveValue('Hello');
   });
 });
