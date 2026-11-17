@@ -8,3 +8,18 @@ export function dhakaClock(date: Date) {
   const minutes = String(local.getUTCMinutes()).padStart(2, '0');
   return { day: local.getUTCDay(), time: `${hours}:${minutes}` };
 }
+
+// midnight in Dhaka at the start of the day that `date` falls on
+export function startOfDhakaDay(date: Date) {
+  const local = new Date(date.getTime() + DHAKA_OFFSET_MS);
+  local.setUTCHours(0, 0, 0, 0);
+  return new Date(local.getTime() - DHAKA_OFFSET_MS);
+}
+
+// midnight in Dhaka on the 1st of that month
+export function startOfDhakaMonth(date: Date) {
+  const local = new Date(date.getTime() + DHAKA_OFFSET_MS);
+  local.setUTCDate(1);
+  local.setUTCHours(0, 0, 0, 0);
+  return new Date(local.getTime() - DHAKA_OFFSET_MS);
+}

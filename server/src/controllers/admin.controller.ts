@@ -1,4 +1,5 @@
 import type { RequestHandler } from 'express';
+import { getAdminStats } from '../services/admin-stats.service';
 import { listTechnicians, reviewTechnician } from '../services/admin-technician.service';
 import { getNidPhotoLink } from '../services/technician-profile.service';
 import { approvalSchema, technicianListQuery } from '../validators/admin.validators';
@@ -20,4 +21,8 @@ export const setTechnicianApproval: RequestHandler = async (req, res) => {
     approvalSchema.parse(req.body ?? {}),
   );
   res.json({ data: { technician } });
+};
+
+export const getStats: RequestHandler = async (_req, res) => {
+  res.json({ data: await getAdminStats() });
 };
