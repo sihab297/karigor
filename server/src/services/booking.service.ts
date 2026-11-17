@@ -11,6 +11,7 @@ import { AppError, fieldError } from '../utils/app-error';
 import type { ChangeStatusInput, CreateBookingInput } from '../validators/booking.validators';
 import { STATUS_LABELS, whoCanChange, type BookingSide } from './booking-rules';
 import { buildBookingViews, type Viewer } from './booking-view';
+import { emitBookingStatus, emitNewBooking } from '../realtime/socket';
 import { findMatches } from './matching.service';
 import { findReport } from './problem.service';
 
@@ -96,6 +97,12 @@ export async function createBooking(
     statusHistory: [{ status: 'requested', at: now, byUserId: customer._id }],
     estimate: estimate ? { min: estimate.min, max: estimate.max } : null,
   }).save();
+
+  emitNewBooking(match.technicianId, {
+    bookingId: booking.id as string,
+    serviceName: search.serviceName,
+    emergency: search.emergency,
+  });
 
   return {
     booking: booking.toJSON(),
@@ -190,6 +197,7 @@ export async function changeBookingStatus(
     );
   }
 
+  emitBookingStatus(updated.id as string, to);
   const [view] = await buildBookingViews([updated], () => side);
   return { booking: view };
 }
