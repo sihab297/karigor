@@ -4,6 +4,8 @@ import { AppLayout } from './components/AppLayout';
 import ComingSoonPage from './pages/ComingSoonPage';
 import AdminTechniciansPage from './pages/admin/AdminTechniciansPage';
 import TechnicianProfilePage from './pages/technician/TechnicianProfilePage';
+import MyJobsPage from './pages/technician/MyJobsPage';
+import JobDetailsPage from './pages/technician/JobDetailsPage';
 import GetHelpPage from './pages/customer/GetHelpPage';
 import ResultPage from './pages/customer/ResultPage';
 import MyBookingsPage from './pages/customer/MyBookingsPage';
@@ -31,15 +33,8 @@ export default function App() {
 
       <Route element={<RequireRole role="technician" />}>
         <Route element={<AppLayout />}>
-          <Route
-            path="/tech/jobs"
-            element={
-              <ComingSoonPage
-                title="My jobs"
-                description="New job requests, upcoming jobs and finished jobs."
-              />
-            }
-          />
+          <Route path="/tech/jobs" element={<MyJobsPage />} />
+          <Route path="/tech/jobs/:id" element={<JobDetailsPage />} />
           <Route path="/tech/profile" element={<TechnicianProfilePage />} />
         </Route>
       </Route>

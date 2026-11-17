@@ -23,3 +23,14 @@ export function nearestArea(point: LatLng, areas: Area[]) {
   }
   return best;
 }
+
+// straight-line distance in km (haversine)
+export function distanceKm(a: LatLng, b: LatLng) {
+  const toRad = (degrees: number) => (degrees * Math.PI) / 180;
+  const dLat = toRad(b.lat - a.lat);
+  const dLng = toRad(b.lng - a.lng);
+  const h =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(toRad(a.lat)) * Math.cos(toRad(b.lat)) * Math.sin(dLng / 2) ** 2;
+  return 6371 * 2 * Math.asin(Math.sqrt(h));
+}
