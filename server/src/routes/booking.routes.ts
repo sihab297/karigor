@@ -1,14 +1,13 @@
 import { Router } from 'express';
-import { changeStatus, create } from '../controllers/booking.controller';
+import { changeStatus, create, getOne, list } from '../controllers/booking.controller';
 import { requireAuth } from '../middleware/require-auth';
 import { requireRole } from '../middleware/require-role';
 
 export const bookingRouter = Router();
 
+const people = [requireAuth, requireRole('customer', 'technician')];
+
 bookingRouter.post('/', requireAuth, requireRole('customer'), create);
-bookingRouter.patch(
-  '/:id/status',
-  requireAuth,
-  requireRole('customer', 'technician'),
-  changeStatus,
-);
+bookingRouter.get('/', ...people, list);
+bookingRouter.get('/:id', requireAuth, requireRole('customer', 'technician', 'admin'), getOne);
+bookingRouter.patch('/:id/status', ...people, changeStatus);

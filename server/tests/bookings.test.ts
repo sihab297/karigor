@@ -305,7 +305,7 @@ describe('PATCH /api/v1/bookings/:id/status', () => {
       'arrived',
       'completed',
     ]);
-    expect(booking.statusHistory[4].byUserId).toBe(rahim.id);
+    expect(booking.statusHistory[4].by).toBe('technician');
     const profile = await TechnicianProfileModel.findOne({ userId: rahim.id });
     expect(profile!.jobsDone.get('plumber')).toBe(11);
   });
@@ -408,5 +408,109 @@ describe('PATCH /api/v1/bookings/:id/status', () => {
     expect((await change('not-an-id', { status: 'accepted' }, rahim.token)).status).toBe(404);
     const unknown = await change(id, { status: 'requested' }, rahim.token);
     expect(unknown.status).toBe(400);
+  });
+});
+
+describe('GET /api/v1/bookings and /bookings/:id', () => {
+  let rahim: TestUser;
+
+  async function saveBooking(status: string, extra: object = {}) {
+    const problemId = await makeReport();
+    const booking = await new BookingModel({
+      customerId: customer.id,
+      technicianId: rahim.id,
+      problemReportId: problemId,
+      serviceId: 'plumber',
+      scheduledAt: new Date(SUNDAY_10AM),
+      location: { type: 'Point', coordinates: [home.lng, home.lat] },
+      addressText: 'House 12, Road 5, Flat 3B',
+      status,
+      statusHistory: [{ status: 'requested', at: NOW, byUserId: customer.id }],
+      ...extra,
+    }).save();
+    return booking.id as string;
+  }
+
+  const get = (path: string, token: string) =>
+    request(app).get(`/api/v1/bookings${path}`).set('Authorization', `Bearer ${token}`);
+
+  beforeEach(async () => {
+    await UserModel.updateOne({ _id: customer.id }, { name: 'Nusrat Jahan' });
+    rahim = await makeTechnician('Rahim Uddin');
+  });
+
+  it("lists the customer's own bookings with the facts they need", async () => {
+    const first = await saveBooking('requested');
+    vi.setSystemTime(new Date(NOW.getTime() + 60_000));
+    const second = await saveBooking('accepted');
+    const other = await makeUser('customer', 'Someone Else');
+    await saveBooking('requested', { customerId: other.id });
+
+    const res = await get('', customer.token);
+
+    expect(res.status).toBe(200);
+    const bookings = res.body.data.bookings;
+    expect(bookings.map((b: { id: string }) => b.id)).toEqual([second, first]);
+    expect(bookings[1]).toMatchObject({
+      status: 'requested',
+      serviceName: 'Plumber',
+      addressText: 'House 12, Road 5, Flat 3B',
+      problem: { text: 'kitchen tap leaking', summary: 'The kitchen tap is leaking.' },
+      technician: { name: 'Rahim Uddin', phone: null, rating: 4.5, ratingCount: 10 },
+      actions: ['cancelled'],
+    });
+    // once accepted, both can call each other
+    expect(bookings[0].technician.phone).toMatch(/^017/);
+    expect(bookings[0].actions).toEqual(['cancelled']);
+
+    const onlyOpen = await get('?status=accepted', customer.token);
+    expect(onlyOpen.body.data.bookings).toHaveLength(1);
+    expect((await get('?status=lost', customer.token)).status).toBe(400);
+  });
+
+  it('keeps the address and phone from the technician until they accept', async () => {
+    const requested = await saveBooking('requested');
+
+    const before = await get(`/${requested}`, rahim.token);
+    expect(before.status).toBe(200);
+    expect(before.body.data.booking).toMatchObject({
+      addressText: null,
+      location: { lat: home.lat, lng: home.lng },
+      customer: { name: 'Nusrat J.', phone: null },
+      actions: ['accepted', 'rejected'],
+    });
+
+    await BookingModel.updateOne({ _id: requested }, { status: 'accepted' });
+    const after = await get(`/${requested}`, rahim.token);
+    expect(after.body.data.booking).toMatchObject({
+      addressText: 'House 12, Road 5, Flat 3B',
+      customer: { name: 'Nusrat Jahan' },
+      actions: ['on_the_way'],
+    });
+    expect(after.body.data.booking.customer.phone).toMatch(/^017/);
+
+    const jobs = await get('', rahim.token);
+    expect(jobs.body.data.bookings).toHaveLength(1);
+  });
+
+  it('offers no buttons when nothing can be done', async () => {
+    const arrived = await saveBooking('arrived');
+
+    const res = await get(`/${arrived}`, customer.token);
+
+    expect(res.body.data.booking.actions).toEqual([]);
+  });
+
+  it('shows a booking only to its two people and the admin', async () => {
+    const id = await saveBooking('requested');
+    const stranger = await makeUser('customer', 'Stranger');
+    const admin = await makeUser('admin', 'Admin');
+
+    expect((await get(`/${id}`, stranger.token)).status).toBe(404);
+    expect((await get('/not-an-id', customer.token)).status).toBe(404);
+    const asAdmin = await get(`/${id}`, admin.token);
+    expect(asAdmin.status).toBe(200);
+    expect(asAdmin.body.data.booking.actions).toEqual([]);
+    expect((await get('', admin.token)).status).toBe(403);
   });
 });
