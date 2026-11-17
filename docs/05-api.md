@@ -133,14 +133,14 @@ measure how often the AI was right.
 
 ### Technicians
 
-| Method | Path                           | Who | What it does                                        |
-| ------ | ------------------------------ | --- | --------------------------------------------------- |
-| GET    | `/technicians/:id`             | Any | Public profile: services, skills, rating            |
-| GET    | `/technicians/:id/reviews`     | Any | Reviews for a technician                            |
-| GET    | `/technicians/me/profile`      | T   | My own profile and approval status (done)           |
-| PUT    | `/technicians/me/profile`      | T   | Save services, skills, area, location, hours (done) |
-| POST   | `/technicians/me/nid`          | T   | Upload NID photo (private) (done)                   |
-| PATCH  | `/technicians/me/availability` | T   | Turn "accepting jobs" on or off (done)              |
+| Method | Path                           | Who | What it does                                                                                                                                                                                                                                                                                                                                  |
+| ------ | ------------------------------ | --- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| GET    | `/technicians/:id`             | Any | Public profile (done): name, area, experience, rating, jobs done (in total and per service), services with only this technician's skills, working days and hours. Never the phone, exact location or NID. Only approved technicians who are not blocked (404 `TECHNICIAN_NOT_FOUND`), except for the admin. `:id` is the technician's user id |
+| GET    | `/technicians/:id/reviews`     | Any | Reviews (done): `{ total, reviews }`, the latest 20, each with the rating, comment, service name, date and the customer's short name ("Nusrat J."). Same visibility rule                                                                                                                                                                      |
+| GET    | `/technicians/me/profile`      | T   | My own profile and approval status (done)                                                                                                                                                                                                                                                                                                     |
+| PUT    | `/technicians/me/profile`      | T   | Save services, skills, area, location, hours (done)                                                                                                                                                                                                                                                                                           |
+| POST   | `/technicians/me/nid`          | T   | Upload NID photo (private) (done)                                                                                                                                                                                                                                                                                                             |
+| PATCH  | `/technicians/me/availability` | T   | Turn "accepting jobs" on or off (done)                                                                                                                                                                                                                                                                                                        |
 
 **Get my profile:** `GET /technicians/me/profile` answers `{ "data": { "profile": null } }` until
 the technician saves it for the first time.

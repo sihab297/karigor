@@ -5,6 +5,7 @@ import {
   saveNidPhoto,
   setAvailability,
 } from '../services/technician-profile.service';
+import { getPublicProfile, getPublicReviews } from '../services/technician-public.service';
 import { AppError } from '../utils/app-error';
 import { detectImageType } from '../utils/image-type';
 import { availabilitySchema, profileSchema } from '../validators/technician.validators';
@@ -32,4 +33,12 @@ export const uploadNid: RequestHandler = async (req, res) => {
   }
   const profile = await saveNidPhoto(req.user!._id, req.file.buffer);
   res.json({ data: { profile } });
+};
+
+export const getPublic: RequestHandler = async (req, res) => {
+  res.json({ data: await getPublicProfile(String(req.params.id), req.user!) });
+};
+
+export const getReviews: RequestHandler = async (req, res) => {
+  res.json({ data: await getPublicReviews(String(req.params.id), req.user!) });
 };

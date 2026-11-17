@@ -5,6 +5,7 @@ import { ReviewModel, type ReviewDocument } from '../models/review.model';
 import { ServiceModel } from '../models/service.model';
 import { TechnicianProfileModel } from '../models/technician-profile.model';
 import { UserModel } from '../models/user.model';
+import { shortName } from '../utils/names';
 import { STATUS_RULES, type BookingSide } from './booking-rules';
 
 export type Viewer = BookingSide | 'admin';
@@ -19,13 +20,6 @@ export function allowedActions(status: BookingStatus, viewer: Viewer): BookingSt
   return Object.entries(STATUS_RULES[status] ?? {})
     .filter(([, side]) => side === viewer)
     .map(([to]) => to as BookingStatus);
-}
-
-// "Nusrat Jahan" -> "Nusrat J."
-function shortName(name: string) {
-  const [first = '', ...rest] = name.trim().split(/\s+/);
-  const last = rest.at(-1);
-  return last ? `${first} ${last[0]}.` : first;
 }
 
 const key = (id: Types.ObjectId) => id.toString();

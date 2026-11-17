@@ -83,6 +83,16 @@ export function TechnicianCard({ match, onBook }: TechnicianCardProps) {
       <Button variant={best ? 'primary' : 'secondary'} className="w-full" onClick={onBook}>
         Book {firstName(match.name)}
       </Button>
+      {/* a new tab keeps these results, so the customer doesn't have to search again */}
+      <a
+        href={`/technicians/${match.technicianId}`}
+        target="_blank"
+        rel="noopener"
+        className="justify-self-center text-sm font-semibold text-pond underline underline-offset-2"
+      >
+        See profile and reviews
+        <span className="sr-only"> of {match.name} (opens in a new tab)</span>
+      </a>
     </article>
   );
 }

@@ -10,6 +10,7 @@ import GetHelpPage from './pages/customer/GetHelpPage';
 import ResultPage from './pages/customer/ResultPage';
 import MyBookingsPage from './pages/customer/MyBookingsPage';
 import BookingDetailsPage from './pages/customer/BookingDetailsPage';
+import TechnicianPublicPage from './pages/customer/TechnicianPublicPage';
 import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
 import NotFoundPage from './pages/NotFoundPage';
@@ -28,6 +29,7 @@ export default function App() {
           <Route path="/request/:id" element={<ResultPage />} />
           <Route path="/bookings" element={<MyBookingsPage />} />
           <Route path="/bookings/:id" element={<BookingDetailsPage />} />
+          <Route path="/technicians/:id" element={<TechnicianPublicPage />} />
         </Route>
       </Route>
 
