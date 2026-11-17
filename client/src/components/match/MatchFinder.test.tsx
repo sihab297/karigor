@@ -262,7 +262,11 @@ describe('where and when, and the top 3', () => {
 
     expect(await screen.findByRole('heading', { name: 'Nobody is free then' })).toBeVisible();
     await user.click(screen.getByRole('button', { name: 'Pick another time' }));
-    expect(screen.getByRole('button', { name: /^Today/ })).toHaveFocus();
+    // "Today" when it still has free hours, otherwise "Tomorrow"
+    const firstOpenDay = screen
+      .getAllByRole('button', { name: /^(Today|Tomorrow)/ })
+      .find((button) => !(button as HTMLButtonElement).disabled);
+    expect(firstOpenDay).toHaveFocus();
     expect(screen.getByText(/Step 2 of 3/)).toBeInTheDocument();
   });
 
