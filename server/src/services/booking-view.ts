@@ -1,6 +1,7 @@
 import type { Types } from 'mongoose';
 import type { BookingDocument, BookingStatus } from '../models/booking.model';
 import { ProblemReportModel } from '../models/problem-report.model';
+import { ReviewModel, type ReviewDocument } from '../models/review.model';
 import { ServiceModel } from '../models/service.model';
 import { TechnicianProfileModel } from '../models/technician-profile.model';
 import { UserModel } from '../models/user.model';
@@ -29,13 +30,22 @@ function shortName(name: string) {
 
 const key = (id: Types.ObjectId) => id.toString();
 
+function reviewOf(review: ReviewDocument | undefined) {
+  if (!review) return null;
+  return {
+    rating: review.rating,
+    comment: review.comment,
+    at: review.get('createdAt') as Date,
+  };
+}
+
 // what each person in a booking is allowed to see
 export async function buildBookingViews(
   bookings: BookingDocument[],
   viewerOf: (booking: BookingDocument) => Viewer,
 ) {
   const userIds = [...new Set(bookings.flatMap((b) => [key(b.customerId), key(b.technicianId)]))];
-  const [users, services, profiles, reports] = await Promise.all([
+  const [users, services, profiles, reports, reviews] = await Promise.all([
     UserModel.find({ _id: { $in: userIds } }, 'name phone'),
     ServiceModel.find({ _id: { $in: [...new Set(bookings.map((b) => b.serviceId))] } }, 'name'),
     TechnicianProfileModel.find(
@@ -43,7 +53,9 @@ export async function buildBookingViews(
       'userId ratingAvg ratingCount',
     ),
     ProblemReportModel.find({ _id: { $in: bookings.map((b) => b.problemReportId) } }, 'text ai'),
+    ReviewModel.find({ bookingId: { $in: bookings.map((b) => b._id) } }),
   ]);
+  const reviewByBooking = new Map(reviews.map((r) => [key(r.bookingId), r]));
   const userById = new Map(users.map((u) => [key(u._id), u]));
   const serviceName = new Map(services.map((s) => [s.id as string, s.name]));
   const profileByUser = new Map(profiles.map((p) => [key(p.userId), p]));
@@ -105,6 +117,10 @@ export async function buildBookingViews(
       })),
       // what this person can do next, so pages show only the right buttons
       actions: allowedActions(status, viewer),
+      review: reviewOf(reviewByBooking.get(key(booking._id))),
+      // the customer can review a finished job once
+      canReview:
+        viewer === 'customer' && status === 'completed' && !reviewByBooking.has(key(booking._id)),
     };
   });
 }
