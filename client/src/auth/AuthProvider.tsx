@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { api } from '../lib/api';
+import { closeLiveSocket } from '../lib/live';
 import { clearToken, getToken, saveToken } from '../lib/token-storage';
 import { AuthContext } from './auth-context';
 import type { RegisterInput, User } from './types';
@@ -46,6 +47,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = useCallback(() => {
     clearToken();
+    closeLiveSocket();
     setUser(null);
   }, []);
 

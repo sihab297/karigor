@@ -3,12 +3,14 @@ import { useCallback, useEffect, useId, useState, type FormEvent } from 'react';
 import { Link, useParams } from 'react-router';
 import { Alert } from '../../components/Alert';
 import { Button } from '../../components/Button';
+import { ChatBox } from '../../components/bookings/ChatBox';
 import { StatusTag } from '../../components/bookings/StatusTag';
 import { StatusTimeline } from '../../components/bookings/StatusTimeline';
 import { Modal } from '../../components/Modal';
 import { api, ApiError } from '../../lib/api';
 import { dhakaDateTime, type Booking } from '../../lib/bookings';
 import { formErrorsFrom, noErrors, type FormErrors } from '../../lib/form-errors';
+import { useBookingLive, type ChatMessage } from '../../lib/live';
 import { taka, takaRange } from '../../lib/money';
 import { firstName } from '../../lib/names';
 import { useDocumentTitle } from '../../lib/use-document-title';
@@ -129,6 +131,17 @@ export default function BookingDetailsPage() {
       stillHere = false;
     };
   }, [id, attempt]);
+
+  // status changes and chat messages arrive without refreshing the page
+  const [liveMessages, setLiveMessages] = useState<ChatMessage[]>([]);
+  useBookingLive(id, {
+    onStatus: () => {
+      api<{ booking: Booking }>(`/bookings/${id}`)
+        .then((data) => setBooking(data.booking))
+        .catch(() => undefined);
+    },
+    onMessage: (message) => setLiveMessages((list) => [...list, message]),
+  });
 
   const back = (
     <Link
@@ -292,6 +305,8 @@ export default function BookingDetailsPage() {
           )}
         </div>
       </div>
+
+      <ChatBox booking={booking} viewer="customer" liveMessages={liveMessages} />
 
       {cancelling && (
         <CancelDialog
