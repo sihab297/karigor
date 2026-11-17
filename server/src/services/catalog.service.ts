@@ -32,7 +32,8 @@ export async function listQuickPicks(serviceId: string) {
   const items = await PriceItemModel.find({
     serviceId,
     active: true,
-    quickPick: { $exists: true, $ne: '' },
+    // an admin can clear a quick pick, which leaves null
+    quickPick: { $nin: [null, ''] },
   }).sort({ position: 1 });
 
   return items.map((item) => ({ priceItemId: item._id, label: item.quickPick! }));
