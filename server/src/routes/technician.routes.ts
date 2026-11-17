@@ -1,6 +1,8 @@
 import { Router } from 'express';
 import {
   getProfile,
+  getPublic,
+  getReviews,
   saveProfile,
   updateAvailability,
   uploadNid,
@@ -18,3 +20,7 @@ technicianRouter.put('/me/profile', ...technicianOnly, saveProfile);
 technicianRouter.patch('/me/availability', ...technicianOnly, updateAvailability);
 // check the login before reading the file, so strangers can't upload
 technicianRouter.post('/me/nid', ...technicianOnly, uploadOnePhoto, uploadNid);
+
+// a technician's public page, for anyone logged in (after the /me routes)
+technicianRouter.get('/:id', requireAuth, getPublic);
+technicianRouter.get('/:id/reviews', requireAuth, getReviews);

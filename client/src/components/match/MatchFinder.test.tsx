@@ -160,6 +160,9 @@ describe('where and when, and the top 3', () => {
     const abdul = screen.getByRole('article', { name: 'Abdul Karim' });
     expect(within(abdul).queryByText(/Has the skill/)).toBeNull();
     expect(within(abdul).getByRole('button', { name: 'Book Abdul' })).toBeInTheDocument();
+    const profileLink = within(abdul).getByRole('link', { name: /See profile and reviews/ });
+    expect(profileLink).toHaveAttribute('href', '/technicians/Abdul Karim');
+    expect(profileLink).toHaveAttribute('target', '_blank');
   });
 
   it('asks for a pin and a time first', async () => {
