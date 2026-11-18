@@ -50,6 +50,14 @@ const MIME_TYPES: Record<string, string> = {
   '.webp': 'image/webp',
 };
 
+// US$ per million tokens for claude-opus-5-5 (Anthropic price list, Nov 2026); other models show tokens only
+const CLAUDE_PRICES: Record<
+  string,
+  { input: number; output: number; cacheWrite: number; cacheRead: number }
+> = {
+  'claude-opus-5-5': { input: 4, output: 20, cacheWrite: 5, cacheRead: 0.2 },
+};
+
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 async function loadImages(names: string[] = []): Promise<AnalyzeInput['images'] | null> {
@@ -105,6 +113,7 @@ async function main() {
   let passed = 0;
   let ran = 0;
   let totalLatency = 0;
+  const tokens = { inputTokens: 0, outputTokens: 0, cacheWriteTokens: 0, cacheReadTokens: 0 };
 
   for (const [index, testCase] of cases.entries()) {
     if (index > 0) await sleep(delayMs);
@@ -116,13 +125,19 @@ async function main() {
     }
 
     try {
-      const { result, latencyMs, model } = await analyze({
+      const { result, latencyMs, model, usage } = await analyze({
         text: testCase.text,
         chosenServiceId: testCase.chosenServiceId,
         images,
       });
       ran++;
       totalLatency += latencyMs;
+      if (usage) {
+        tokens.inputTokens += usage.inputTokens;
+        tokens.outputTokens += usage.outputTokens;
+        tokens.cacheWriteTokens += usage.cacheWriteTokens;
+        tokens.cacheReadTokens += usage.cacheReadTokens;
+      }
 
       const problems: string[] = [];
       const gotService = result.serviceId ?? 'unknown';
@@ -181,6 +196,25 @@ async function main() {
   console.log(`Service correct:  ${serviceOk}/${ran} (${Math.round((serviceOk / ran) * 100)}%)`);
   console.log(`Urgency correct:  ${urgencyOk}/${urgencyChecked}`);
   console.log(`Average time:     ${(totalLatency / ran / 1000).toFixed(1)}s`);
+
+  if (tokens.inputTokens + tokens.outputTokens > 0) {
+    console.log(
+      `Tokens:           ${tokens.inputTokens} in, ${tokens.outputTokens} out, ` +
+        `${tokens.cacheWriteTokens} cache write, ${tokens.cacheReadTokens} cache read`,
+    );
+    const price = CLAUDE_PRICES[mainModel];
+    if (price) {
+      const dollars =
+        (tokens.inputTokens * price.input +
+          tokens.outputTokens * price.output +
+          tokens.cacheWriteTokens * price.cacheWrite +
+          tokens.cacheReadTokens * price.cacheRead) /
+        1_000_000;
+      console.log(
+        `Cost (estimate):  US$ ${dollars.toFixed(3)} (${(dollars / ran).toFixed(4)} per check)`,
+      );
+    }
+  }
 }
 
 main().catch((error) => {

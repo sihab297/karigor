@@ -7,4 +7,11 @@ export interface AnalyzeOutcome {
   raw: AiOutput;
   latencyMs: number;
   model: string;
+  // tokens used, when the provider reports them (for cost checks)
+  usage?: {
+    inputTokens: number;
+    outputTokens: number;
+    cacheWriteTokens: number;
+    cacheReadTokens: number;
+  };
 }

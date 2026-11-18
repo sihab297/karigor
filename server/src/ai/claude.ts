@@ -46,7 +46,11 @@ export async function analyzeWithClaude(
   const response = await client.messages.parse({
     model,
     max_tokens: 16000,
-    system: buildSystemInstruction(catalog),
+    // the instructions and price list are the same for every check, so Claude caches them;
+    // later checks within a few minutes read them for a small part of the normal price
+    system: [
+      { type: 'text', text: buildSystemInstruction(catalog), cache_control: { type: 'ephemeral' } },
+    ],
     // choosing a service and price items is a short task, so keep thinking light
     output_config: { effort: 'low', format: zodOutputFormat(schema) },
     messages: [{ role: 'user', content: buildContent(input) }],
@@ -64,5 +68,11 @@ export async function analyzeWithClaude(
     raw,
     latencyMs: Date.now() - started,
     model,
+    usage: response.usage && {
+      inputTokens: response.usage.input_tokens,
+      outputTokens: response.usage.output_tokens,
+      cacheWriteTokens: response.usage.cache_creation_input_tokens ?? 0,
+      cacheReadTokens: response.usage.cache_read_input_tokens ?? 0,
+    },
   };
 }

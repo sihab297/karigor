@@ -51,6 +51,32 @@ describe('analyzeWithClaude', () => {
     expect(content[1].type).toBe('text');
   });
 
+  it('caches the instructions and reports the tokens used', async () => {
+    const parse = vi.fn().mockResolvedValue({
+      stop_reason: 'end_turn',
+      parsed_output: goodAnswer,
+      usage: {
+        input_tokens: 120,
+        output_tokens: 300,
+        cache_creation_input_tokens: 0,
+        cache_read_input_tokens: 2500,
+      },
+    });
+
+    const outcome = await analyzeWithClaude(fakeClient(parse), 'claude-opus-5-5', {
+      text: 'tap leaking',
+    });
+
+    const request = parse.mock.calls[0][0];
+    expect(request.system[0].cache_control).toEqual({ type: 'ephemeral' });
+    expect(outcome.usage).toEqual({
+      inputTokens: 120,
+      outputTokens: 300,
+      cacheWriteTokens: 0,
+      cacheReadTokens: 2500,
+    });
+  });
+
   it('fails when Claude declines to answer', async () => {
     const parse = vi.fn().mockResolvedValue({ stop_reason: 'refusal', parsed_output: null });
 
