@@ -1,11 +1,13 @@
 import type { Types } from 'mongoose';
 import { rankCandidates, type Candidate } from '../matching/score';
+import { BookingModel, BUSY_STATUSES } from '../models/booking.model';
 import { ServiceModel } from '../models/service.model';
 import { TechnicianProfileModel } from '../models/technician-profile.model';
 import type { UserDocument } from '../models/user.model';
 import { AppError, fieldError } from '../utils/app-error';
 import { dhakaClock } from '../utils/dhaka-time';
 import type { MatchInput } from '../validators/problem.validators';
+import { JOB_SLOT_MS } from './booking-rules';
 import { findReport } from './problem.service';
 
 const MAX_KM = 10;
@@ -99,17 +101,33 @@ export async function findMatches(
     { $match: { 'user.status': 'active' } },
   ]);
 
-  const candidates: Match[] = rows.map((row) => ({
-    userId: row.userId.toString(),
-    name: row.user.name,
-    areaName: row.areaName,
-    distanceKm: row.distanceM / 1000,
-    skillIds: row.skillIds,
-    ratingAvg: row.ratingAvg,
-    ratingCount: row.ratingCount,
-    jobsDone: row.jobsDone?.[serviceId] ?? 0,
-    experienceYears: row.experienceYears,
-  }));
+  // leave out anyone who already said yes to a job close to this time
+  const busy = new Set(
+    (
+      await BookingModel.distinct('technicianId', {
+        technicianId: { $in: rows.map((row) => row.userId) },
+        status: { $in: BUSY_STATUSES },
+        scheduledAt: {
+          $gt: new Date(when.getTime() - JOB_SLOT_MS),
+          $lt: new Date(when.getTime() + JOB_SLOT_MS),
+        },
+      })
+    ).map(String),
+  );
+
+  const candidates: Match[] = rows
+    .filter((row) => !busy.has(row.userId.toString()))
+    .map((row) => ({
+      userId: row.userId.toString(),
+      name: row.user.name,
+      areaName: row.areaName,
+      distanceKm: row.distanceM / 1000,
+      skillIds: row.skillIds,
+      ratingAvg: row.ratingAvg,
+      ratingCount: row.ratingCount,
+      jobsDone: row.jobsDone?.[serviceId] ?? 0,
+      experienceYears: row.experienceYears,
+    }));
 
   const skillNames = new Map(service.skills.map((skill) => [skill.id, skill.name]));
   const top = rankCandidates(candidates, { skillIds: neededSkills, maxKm }, TOP);

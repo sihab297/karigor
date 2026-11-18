@@ -165,6 +165,8 @@ the AI again; it uses the saved AI result.
   (5, 10 or 15 km on their profile; 15 km still stops at 10 km, as the proposal says)
 - the chosen day is one of their working days and the time is inside their working hours, in
   Dhaka time (`utils/dhaka-time.ts`, UTC+6)
+- has no accepted job within 2 hours of that time (a job they were only asked about doesn't
+  count until they accept it)
 - **Emergency:** within **5 km**, and the time is "right now" (unless the customer chooses "Book
   for later", which runs the normal search for that time)
 
@@ -199,5 +201,6 @@ gave Rahim Uddin (0.4 km, 4.6 stars, 18 jobs, tap repair skill) as best match; a
 Friday, or at 11 PM, gave nobody (everyone is off); a gas smell in Mirpur at Thursday 10:00 gave the
 gas fitter 0.5 km away.
 
-Bookings come in M5. When they do, a technician who already has a booking at that time will be
-left out too.
+A technician who already accepted a job within 2 hours of that time is left out too, so the
+customer is never shown someone who can't come. If they try to book such a technician anyway, the
+answer is 409 `TECHNICIAN_BUSY`.
