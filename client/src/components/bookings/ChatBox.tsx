@@ -55,6 +55,8 @@ export function ChatBox({ booking, viewer, liveMessages }: ChatBoxProps) {
   }, [messages.length]);
 
   if (!wasAccepted && booking.status !== 'requested') return null;
+  // a closed chat with nothing in it is just clutter
+  if (history && !open && messages.length === 0) return null;
 
   async function handleSend(event: FormEvent) {
     event.preventDefault();
@@ -83,7 +85,11 @@ export function ChatBox({ booking, viewer, liveMessages }: ChatBoxProps) {
       </h2>
 
       {booking.status === 'requested' ? (
-        <p className="text-muted">The chat opens when {otherFirst} accepts.</p>
+        <p className="text-muted">
+          {viewer === 'customer'
+            ? `The chat opens when ${otherFirst} accepts.`
+            : 'The chat opens when you accept this job.'}
+        </p>
       ) : loadError ? (
         <Alert>{loadError}</Alert>
       ) : !history ? (

@@ -194,6 +194,29 @@ describe('staying logged in', () => {
     expect(localStorage.getItem('karigor.token')).toBeNull();
   });
 
+  it('keeps the login when the server cannot be reached, and can try again', async () => {
+    localStorage.setItem('karigor.token', 'saved-token');
+    let online = false;
+    mockApi({
+      'GET /auth/me': () =>
+        online
+          ? { body: { data: { user: testUsers.customer } } }
+          : { status: 503, body: { error: { code: 'SERVER_ERROR', message: 'Server is busy.' } } },
+    });
+    const user = userEvent.setup();
+    renderAt('/request');
+
+    expect(
+      await screen.findByRole('heading', { name: "Can't open Karigor right now" }),
+    ).toBeTruthy();
+    expect(screen.getByText('Server is busy.')).toBeTruthy();
+    expect(localStorage.getItem('karigor.token')).toBe('saved-token');
+
+    online = true;
+    await user.click(screen.getByRole('button', { name: 'Try again' }));
+    expect(await screen.findByRole('heading', { name: 'What needs fixing?' })).toBeTruthy();
+  });
+
   it('sends logged-in users away from the login page', async () => {
     localStorage.setItem('karigor.token', 'saved-token');
     mockApi({ 'GET /auth/me': () => ({ body: { data: { user: testUsers.admin } } }) });

@@ -304,11 +304,56 @@ describe('Chat and live updates', () => {
           },
         },
       }),
-      'GET /bookings/b2/messages': () => ({ body: { data: { chatOpen: false, messages: [] } } }),
+      'GET /bookings/b2/messages': () => ({
+        body: {
+          data: {
+            chatOpen: false,
+            messages: [
+              {
+                id: 'm1',
+                bookingId: 'b2',
+                text: 'Thanks!',
+                at: '2026-10-18T05:10:00.000Z',
+                from: 'customer',
+              },
+            ],
+          },
+        },
+      }),
     });
     renderAt('/bookings/b2');
     expect(await screen.findByText(/The chat is closed for this booking/)).toBeInTheDocument();
+    expect(screen.getByText('Thanks!')).toBeInTheDocument();
     expect(screen.queryByLabelText('Message to Rahim')).not.toBeInTheDocument();
+  });
+
+  it('hides a closed chat that never had messages', async () => {
+    signedIn({
+      'GET /bookings/b3': () => ({
+        body: {
+          data: {
+            booking: booking({
+              id: 'b3',
+              status: 'completed',
+              finalPrice: 450,
+              actions: [],
+              statusHistory: [
+                { status: 'requested', at: '2026-10-17T04:00:00.000Z', by: 'customer' },
+                { status: 'accepted', at: '2026-10-17T04:10:00.000Z', by: 'technician' },
+                { status: 'completed', at: '2026-10-18T05:00:00.000Z', by: 'technician' },
+              ],
+            }),
+          },
+        },
+      }),
+      'GET /bookings/b3/messages': () => ({ body: { data: { chatOpen: false, messages: [] } } }),
+    });
+    renderAt('/bookings/b3');
+
+    expect(await screen.findByRole('heading', { name: 'Plumber' })).toBeInTheDocument();
+    // wait for the messages request, then the chat stays hidden
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    expect(screen.queryByRole('region', { name: /Chat with/ })).not.toBeInTheDocument();
   });
 
   it('shows why a message was not sent', async () => {

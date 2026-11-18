@@ -169,6 +169,8 @@ describe('Job details', () => {
       screen.getByText(/full address and phone number show after you accept/),
     ).toBeInTheDocument();
     expect(screen.queryByText('House 12, Road 5, Flat 3B')).not.toBeInTheDocument();
+    // the technician is the one who accepts, so the chat says so
+    expect(screen.getByText('The chat opens when you accept this job.')).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: 'Accept' }));
 

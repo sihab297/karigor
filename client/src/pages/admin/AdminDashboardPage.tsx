@@ -20,6 +20,17 @@ interface AdminStats {
   problemChecksThisMonth: number;
 }
 
+// the order a job goes through, then the two ways it can stop
+const STATUS_ORDER: BookingStatus[] = [
+  'requested',
+  'accepted',
+  'on_the_way',
+  'arrived',
+  'completed',
+  'cancelled',
+  'rejected',
+];
+
 const STATUS_NAMES: Record<BookingStatus, string> = {
   requested: 'Requested',
   accepted: 'Accepted',
@@ -187,10 +198,12 @@ export default function AdminDashboardPage() {
           <div className="grid gap-5 md:grid-cols-2">
             <BarList
               title="Bookings this month by status"
-              rows={stats.bookings.thisMonthByStatus.map((row) => ({
-                label: STATUS_NAMES[row.status],
-                count: row.count,
-              }))}
+              rows={[...stats.bookings.thisMonthByStatus]
+                .sort((a, b) => STATUS_ORDER.indexOf(a.status) - STATUS_ORDER.indexOf(b.status))
+                .map((row) => ({
+                  label: STATUS_NAMES[row.status],
+                  count: row.count,
+                }))}
             />
             <BarList
               title="Bookings this month by service"
