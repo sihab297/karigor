@@ -11,6 +11,7 @@ Read these before coding. They follow the approved proposal.
 | [05-api.md](05-api.md)                         | Every API endpoint and live (Socket.IO) event               |
 | [06-ai-design.md](06-ai-design.md)             | How the AI check works, what it returns, and how to test it |
 | [07-design.md](07-design.md)                   | Colors, fonts, shapes, ready-made components and wording    |
+| [postman/](postman/)                           | Postman collection to try every endpoint (see 05-api.md)    |
 
 ## Clickable prototype
 
@@ -36,7 +37,7 @@ it as the design for pages that are not built yet. Live copy:
 
 - [x] Gemini API key in `server/.env` (works)
 - [x] Cloudinary account in `server/.env` (works)
-- [x] AI check: 21 of 21 answered cases passed (case 19 still to run; see
+- [x] AI check: all 22 cases passed with Claude, case 19 included (see
       [06-ai-design.md](06-ai-design.md))
 - [x] MongoDB Atlas cluster and user created, connection string in `server/.env`
 - [x] IP allowed in MongoDB Atlas. Connection, write, read and delete all tested. If your
