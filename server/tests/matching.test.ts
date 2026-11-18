@@ -1,6 +1,7 @@
 import request from 'supertest';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createApp } from '../src/app';
+import { BookingModel, type BookingStatus } from '../src/models/booking.model';
 import { ProblemReportModel } from '../src/models/problem-report.model';
 import { ServiceModel } from '../src/models/service.model';
 import { TechnicianProfileModel } from '../src/models/technician-profile.model';
@@ -143,6 +144,36 @@ describe('POST /api/v1/problems/:id/matches', () => {
 
     expect(res.status).toBe(200);
     expect(names(res)).toEqual(['Karim Mia', 'Nadia Akter', 'Rahim Uddin']);
+  });
+
+  it('leaves out technicians who already said yes to a job near that time', async () => {
+    const rahim = await makeTechnician('Rahim Uddin', { km: 1 });
+    const nadia = await makeTechnician('Nadia Akter', { km: 2 });
+    const karim = await makeTechnician('Karim Mia', { km: 3 });
+    const otherProblem = await makeReport();
+    const job = (technicianId: string, at: string, status: BookingStatus) =>
+      BookingModel.create({
+        customerId: customer.id,
+        technicianId,
+        problemReportId: otherProblem,
+        serviceId: 'plumber',
+        scheduledAt: new Date(at),
+        location: { type: 'Point', coordinates: [home.lng, home.lat] },
+        addressText: 'House 1',
+        status,
+      });
+    // an hour after the wanted time: busy
+    await job(rahim.id, '2026-10-18T11:00:00+06:00', 'accepted');
+    // only asked, not accepted yet: still free
+    await job(nadia.id, '2026-10-18T10:00:00+06:00', 'requested');
+    // four hours later: free
+    await job(karim.id, '2026-10-18T14:00:00+06:00', 'accepted');
+    const id = await makeReport();
+
+    const res = await findMatches(id, { location: home, when: SUNDAY_10AM });
+
+    expect(res.status).toBe(200);
+    expect(names(res)).toEqual(['Karim Mia', 'Nadia Akter']);
   });
 
   it('ranks them and shows the facts behind each one', async () => {

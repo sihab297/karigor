@@ -9,14 +9,11 @@ import { TechnicianProfileModel } from '../models/technician-profile.model';
 import type { UserDocument } from '../models/user.model';
 import { AppError, fieldError } from '../utils/app-error';
 import type { ChangeStatusInput, CreateBookingInput } from '../validators/booking.validators';
-import { STATUS_LABELS, whoCanChange, type BookingSide } from './booking-rules';
+import { JOB_SLOT_MS, STATUS_LABELS, whoCanChange, type BookingSide } from './booking-rules';
 import { buildBookingViews, type Viewer } from './booking-view';
 import { emitBookingStatus, emitNewBooking } from '../realtime/socket';
 import { findMatches } from './matching.service';
 import { findReport } from './problem.service';
-
-// a job keeps the technician busy for about this long on each side of its start time
-const SLOT_MS = 2 * 60 * 60 * 1000;
 
 // another job the technician said yes to, close to this time
 function findClashingJob(
@@ -28,8 +25,8 @@ function findClashingJob(
     technicianId,
     status: { $in: BUSY_STATUSES },
     scheduledAt: {
-      $gt: new Date(at.getTime() - SLOT_MS),
-      $lt: new Date(at.getTime() + SLOT_MS),
+      $gt: new Date(at.getTime() - JOB_SLOT_MS),
+      $lt: new Date(at.getTime() + JOB_SLOT_MS),
     },
     ...(exceptId ? { _id: { $ne: exceptId } } : {}),
   });
@@ -61,21 +58,24 @@ export async function createBooking(
     { location: input.location, when: input.when },
     now,
   );
+  const scheduledAt = new Date(search.when);
   const match = search.matches.find((m) => m.technicianId === input.technicianId);
   if (!match) {
+    // matching leaves out busy technicians; say so when that is the reason
+    if (
+      isValidObjectId(input.technicianId) &&
+      (await findClashingJob(input.technicianId, scheduledAt))
+    ) {
+      throw new AppError(
+        409,
+        'TECHNICIAN_BUSY',
+        'This karigor already has a job at that time. Choose another karigor or time.',
+      );
+    }
     throw new AppError(
       409,
       'TECHNICIAN_NOT_AVAILABLE',
       'This karigor is no longer free for that time and place. Choose another one.',
-    );
-  }
-
-  const scheduledAt = new Date(search.when);
-  if (await findClashingJob(match.technicianId, scheduledAt)) {
-    throw new AppError(
-      409,
-      'TECHNICIAN_BUSY',
-      `${match.name} already has a job at that time. Choose another karigor or time.`,
     );
   }
 

@@ -2,6 +2,9 @@ import type { BookingStatus } from '../models/booking.model';
 
 export type BookingSide = 'customer' | 'technician';
 
+// a job keeps the technician busy for about this long on each side of its start time
+export const JOB_SLOT_MS = 2 * 60 * 60 * 1000;
+
 // who may move a booking from one status to the next (docs/03-booking-flow.md)
 export const STATUS_RULES: Partial<
   Record<BookingStatus, Partial<Record<BookingStatus, BookingSide>>>
