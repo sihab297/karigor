@@ -93,7 +93,8 @@ knows the words in its rules, so always try the real AI before a demo.
 - **Privacy:** only the problem text and photos are sent. Phone numbers and emails typed into
   the text are removed first. On Gemini's free tier, Google may use what we send to improve its
   products, which is another reason to send nothing personal.
-- **Cost:** Claude is paid per request. The limit of 10 checks per customer per hour
+- **Cost:** Claude is paid per request, about US$ 0.004 for a text-only check (measured
+  November 2026, with the instructions cached). The limit of 10 checks per customer per hour
   (`AI_CHECKS_PER_HOUR`) also keeps the bill small; keep `AI_MODE=mock` while building pages.
 - **Gemini free-tier limits:** the free tier allows only about **20 requests per day for each model**
   (checked October 2026; see <https://ai.dev/rate-limit>). With the main model and 3 backups that is
@@ -127,6 +128,24 @@ Run the real check again whenever you change the prompt, the catalog or the mode
 is 22 paid Claude requests (or 22 of Gemini's daily free requests), so to check a change quickly,
 run just a few cases:
 `npm run test:ai -w server -- 4 15 21`.
+
+**Results with Claude `claude-opus-5-5` (19 November 2026):** **all 22 cases passed**, with case 19
+(the trick attempt) included.
+
+| Measure                                 | Result                                      |
+| --------------------------------------- | ------------------------------------------- |
+| Right service                           | 22 / 22 (100%)                              |
+| Right urgency                           | 20 / 20 checked                             |
+| Emergencies caught (cases 4, 5, 15, 20) | 4 / 4, each with the right safety tips      |
+| Trick attempt (case 19)                 | Ignored; the tap leak went to the plumber   |
+| Not a home problem (case 18)            | `unknown`, and a follow-up question asked   |
+| Average time per check                  | 2.4 seconds                                 |
+| Cost of the whole run                   | About US$ 0.10 (less than half a cent each) |
+
+The cost is low because the instructions and price list (about 3,700 tokens, the same for every
+check) are cached: the first check writes them to Claude's cache and the next checks within a few
+minutes read them for a small part of the price (`cache_control` in `claude.ts`). The test script
+prints the tokens used and the cost at the end of each run.
 
 **Results with Gemini (12 October 2026):** 21 of 22 cases answered, and **all 21 passed**: the right service
 every time, every emergency caught, and the quick-path mismatch detected. Case 19 (the trick
