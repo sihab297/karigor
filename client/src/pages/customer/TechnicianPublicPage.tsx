@@ -207,8 +207,9 @@ export default function TechnicianPublicPage() {
           </h2>
           {reviews.reviews.length === 0 ? (
             <p className="text-muted">
-              No reviews yet. {tech.name.split(' ')[0]} is new on Karigor and was checked by our
-              admin.
+              {tech.ratingCount > 0
+                ? 'No written reviews to show yet. The rating above comes from star ratings.'
+                : `No reviews yet. ${tech.name.split(' ')[0]} is new on Karigor and was checked by our admin.`}
             </p>
           ) : (
             <ul className="grid divide-y divide-line">

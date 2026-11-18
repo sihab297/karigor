@@ -48,7 +48,18 @@ describe('Admin dashboard', () => {
     );
 
     const byStatus = screen.getByRole('list', { name: 'Bookings this month by status' });
-    expect(within(byStatus).getAllByRole('listitem')).toHaveLength(7);
+    const statusRows = within(byStatus).getAllByRole('listitem');
+    expect(statusRows).toHaveLength(7);
+    // the order a job goes through, then cancelled and not accepted
+    expect(statusRows.map((row) => row.firstElementChild?.textContent)).toEqual([
+      'Requested',
+      'Accepted',
+      'On the way',
+      'Arrived',
+      'Completed',
+      'Cancelled',
+      'Not accepted',
+    ]);
     expect(within(byStatus).getByText('Completed')).toBeInTheDocument();
     expect(within(byStatus).getByText('64')).toBeInTheDocument();
     expect(screen.getByText('114 in total')).toBeInTheDocument();

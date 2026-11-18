@@ -101,7 +101,7 @@ function BookingsPanel() {
   return (
     <div className="grid gap-4">
       <SearchBox
-        label="Search name, phone or booking number"
+        label="Name, phone or booking #"
         onSearch={(text) => {
           setQ(text);
           setPage(1);
@@ -201,7 +201,7 @@ function UsersPanel() {
   return (
     <div className="grid gap-4">
       <SearchBox
-        label="Search name, phone or email"
+        label="Name, phone or email"
         onSearch={(text) => {
           setQ(text);
           setPage(1);

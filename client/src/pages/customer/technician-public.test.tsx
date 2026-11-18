@@ -87,6 +87,17 @@ describe('Technician public profile', () => {
     expect(screen.getByText('New')).toBeInTheDocument();
   });
 
+  it("doesn't call a rated technician new when there are no written reviews", async () => {
+    signedIn({
+      'GET /technicians/t1': () => ({ body: { data: { technician: rahim } } }),
+      'GET /technicians/t1/reviews': () => ({ body: { data: { total: 0, reviews: [] } } }),
+    });
+    renderAt('/technicians/t1');
+
+    expect(await screen.findByText(/No written reviews to show yet/)).toBeInTheDocument();
+    expect(screen.queryByText(/is new on Karigor/)).not.toBeInTheDocument();
+  });
+
   it('says so when the profile is not open', async () => {
     signedIn({
       'GET /technicians/t9': () => ({
