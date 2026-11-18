@@ -11,6 +11,7 @@ Read these before coding. They follow the approved proposal.
 | [05-api.md](05-api.md)                         | Every API endpoint and live (Socket.IO) event               |
 | [06-ai-design.md](06-ai-design.md)             | How the AI check works, what it returns, and how to test it |
 | [07-design.md](07-design.md)                   | Colors, fonts, shapes, ready-made components and wording    |
+| [08-manual-testing.md](08-manual-testing.md)   | Manual test checklist for every page and role, and bugs     |
 | [postman/](postman/)                           | Postman collection to try every endpoint (see 05-api.md)    |
 
 ## Clickable prototype
