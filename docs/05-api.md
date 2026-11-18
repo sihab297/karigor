@@ -13,6 +13,32 @@
   The server checks this on every request with `requireAuth` and `requireRole(...)`, using the
   role saved in the database, so a role change or a block works straight away.
 
+## Trying the API with Postman
+
+[postman/karigor.postman_collection.json](postman/karigor.postman_collection.json) has every
+endpoint below (56 requests), in the order of one full story: a customer signs up, checks a
+problem, books a technician, the technician does the job, the customer reviews it, and the admin
+manages people and the catalog. Each request has an example body and test scripts that check the
+answer and save tokens and ids for the next requests.
+
+1. In Postman (the desktop app, or <https://web.postman.co> in a browser): **Import** and choose
+   the file.
+2. Open the collection's **Variables** tab and fill in `adminPhone`, `adminPassword` and
+   `testUserPassword` from `server/.env`. Change `baseUrl` to use the deployed API instead of
+   `http://localhost:4000/api/v1`.
+3. Seed the database (`npm run seed -w server`), start the API (`npm run dev`), keeping
+   `AI_MODE=mock` so the AI check costs nothing, then **Run collection**.
+
+Two requests need a file chosen by hand: the photo in "Check a problem" (optional, switched off)
+and "Upload my NID photo". Without the NID photo, approving the new technician answers 409
+`NID_REQUIRED`, and the test expects that. Sign-up uses a new random phone number each run, so the
+collection can be run again and again. The admin requests add a test skill and price item and then
+delete them, so the catalog ends as it was. Chat messages are sent over Socket.IO (see the end of
+this page), so Postman only shows the chat history.
+
+Checked on 19 November 2026 against a freshly seeded database: 55 of 56 requests passed, and the
+NID upload was left out because it needs a file.
+
 ## Endpoints
 
 ### Health
